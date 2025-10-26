@@ -8,17 +8,17 @@ tool_desc = {
     "type": "function",
     "function": {
         "name": "run_python",
-        "description": "Run the given string as Python code by calling exec(). "
+        "description": "Use this to perform calculations, data transformations, "
+                       "or date/time conversions. The code should print() the result. "
                        "The time limit of code running is 1s, "
-                       "and no input is accepted (you need to enclose the test inputs inside your code). "
-                       "You will be provided with the output or any errors occurred "
-                       "(in code fences) to help you further debug. ",
+                       "and no input is accepted (you need to enclose the data inside your code). "
+                       "Run with minimal code, avoid unnecessary comments.",
         "parameters": {
             "type": "object",
             "properties": {
                 "code": {
                     "type": "string",
-                    "description": "The Python code to be run.",
+                    "description": "Python code to execute. Must use print() to output results",
                 }
             },
             "required": ["code"]
