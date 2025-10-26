@@ -111,7 +111,7 @@ MAIDX works with any OpenAI-compatible API endpoint. The following services are 
 - Python 3.8+
 - PySide6 (Qt GUI framework)
 - httpx (HTTP client)
-- PyPDF2 (PDF parsing)
+- PyPDF (PDF parsing)
 - python-docx (DOCX parsing)
 - Pillow + pytesseract (Image OCR)
 

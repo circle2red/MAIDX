@@ -35,11 +35,11 @@ def parse_pdf(file_path: str) -> str:
         Extracted text content
     """
     try:
-        import PyPDF2
+        import pypdf
 
         text = []
         with open(file_path, 'rb') as f:
-            pdf_reader = PyPDF2.PdfReader(f)
+            pdf_reader = pypdf.PdfReader(f)
             for page in pdf_reader.pages:
                 page_text = page.extract_text()
                 if page_text:
@@ -48,7 +48,7 @@ def parse_pdf(file_path: str) -> str:
         return '\n'.join(text)
 
     except ImportError:
-        return "[Error: PyPDF2 not installed. Install with: pip install PyPDF2]"
+        return "[Error: PyPDF not installed. Install with: pip install PyPDF]"
     except Exception as e:
         return f"[Error parsing PDF: {str(e)}]"
 
