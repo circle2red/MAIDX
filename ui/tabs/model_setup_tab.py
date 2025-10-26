@@ -4,7 +4,7 @@ Model Setup Tab - Configure LLM model and parameters
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QGroupBox,
                                QLabel, QComboBox, QLineEdit, QPushButton,
                                QDoubleSpinBox, QSpinBox, QTextEdit, QCheckBox,
-                               QFormLayout)
+                               QFormLayout, QMessageBox)
 from PySide6.QtCore import Signal
 
 
@@ -85,28 +85,55 @@ class ModelSetupTab(QWidget):
         layout.addWidget(model_group)
 
         # Model Parameters Group
-        params_group = QGroupBox("Model Parameters")
+        params_group = QGroupBox("Parameters")
         params_layout = QFormLayout()
 
         # Temperature
+        temperature_row = QHBoxLayout()
+        temperature_row.addWidget(QLabel("Temperature:"))
+        self.temperature_use_default = QCheckBox("Default")
+        self.temperature_use_default.setChecked(True)
+        temperature_row.addWidget(self.temperature_use_default)
         self.temperature_spin = QDoubleSpinBox()
         self.temperature_spin.setRange(0.0, 2.0)
         self.temperature_spin.setSingleStep(0.1)
-        self.temperature_spin.setValue(0.7)
-        params_layout.addRow("Temperature:", self.temperature_spin)
+        self.temperature_spin.setValue(1)
+        temperature_row.addWidget(self.temperature_spin, 1)  # 1: stretch factor, fill the row
+        params_layout.addRow(temperature_row)
 
         # Max Tokens
+        max_tokens_row = QHBoxLayout()
+        max_tokens_row.addWidget(QLabel("Max Tokens:"))
+        self.max_tokens_use_default = QCheckBox("Default")
+        self.max_tokens_use_default.setChecked(True)
+        max_tokens_row.addWidget(self.max_tokens_use_default)
         self.max_tokens_spin = QSpinBox()
         self.max_tokens_spin.setRange(1, 128000)
         self.max_tokens_spin.setValue(4096)
-        params_layout.addRow("Max Tokens:", self.max_tokens_spin)
+        max_tokens_row.addWidget(self.max_tokens_spin, 1)
+        params_layout.addRow(max_tokens_row)
 
         # Top P
+        top_p_row = QHBoxLayout()
+        top_p_row.addWidget(QLabel("Top P:"))
+        self.top_p_use_default = QCheckBox("Default")
+        self.top_p_use_default.setChecked(True)
+        top_p_row.addWidget(self.top_p_use_default)
         self.top_p_spin = QDoubleSpinBox()
         self.top_p_spin.setRange(0.0, 1.0)
         self.top_p_spin.setSingleStep(0.1)
-        self.top_p_spin.setValue(1.0)
-        params_layout.addRow("Top P:", self.top_p_spin)
+        self.top_p_spin.setValue(1)
+        top_p_row.addWidget(self.top_p_spin, 1)
+        params_layout.addRow(top_p_row)
+
+        # Network Timeout
+        timeout_row = QHBoxLayout()
+        timeout_row.addWidget(QLabel("Network Timeout (s): "))
+        self.timeout_spin = QDoubleSpinBox()
+        self.timeout_spin.setRange(0, 10000)
+        self.timeout_spin.setValue(120)
+        timeout_row.addWidget(self.timeout_spin, 1)
+        params_layout.addRow(timeout_row)
 
         params_group.setLayout(params_layout)
         layout.addWidget(params_group)
@@ -121,9 +148,9 @@ class ModelSetupTab(QWidget):
         tools_layout.addWidget(self.enable_python_tool)
 
         # Future tools placeholder
-        future_label = QLabel("(Additional tools can be added here in the future)")
-        future_label.setStyleSheet("color: gray; font-style: italic;")
-        tools_layout.addWidget(future_label)
+        # future_label = QLabel("(Additional tools can be added here in the future)")
+        # future_label.setStyleSheet("color: gray; font-style: italic;")
+        # tools_layout.addWidget(future_label)
 
         tools_group.setLayout(tools_layout)
         layout.addWidget(tools_group)
@@ -157,7 +184,6 @@ class ModelSetupTab(QWidget):
 
     def test_connection(self):
         """Test the API connection"""
-        from PySide6.QtWidgets import QMessageBox
         from core.llm_client import LLMClient
         try:
             client = LLMClient(config=self.get_config())
@@ -186,13 +212,18 @@ class ModelSetupTab(QWidget):
             headers["Authorization"] = f"Bearer {self.api_key_input.text().strip()}"
         headers.update(custom_headers)
 
-        return {
+        config = {
             "endpoint": self.endpoint_input.text(),
             "model": self.model_input.text(),
             "api_key": self.api_key_input.text(),
             "headers": headers,
-            "temperature": self.temperature_spin.value(),
-            "max_tokens": self.max_tokens_spin.value(),
-            "top_p": self.top_p_spin.value(),
             "enable_python_tool": self.enable_python_tool.isChecked()
         }
+        if not self.temperature_use_default.isChecked():
+            config["temperature"] = self.temperature_spin.value()
+        if not self.top_p_use_default.isChecked():
+            config["top_p"] = self.top_p_spin.value()
+        if not self.max_tokens_use_default.isChecked():
+            config["max_tokens"] = self.max_tokens_spin.value()
+
+        return config

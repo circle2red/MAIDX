@@ -26,10 +26,11 @@ class LLMClient:
         self.endpoint = config['endpoint']
         self.model = config['model']
         self.headers = config['headers']
-        self.temperature = config['temperature']
-        self.max_tokens = config['max_tokens']
-        self.top_p = config['top_p']
-        self.enable_python_tool = config.get('enable_python_tool', True)
+        self.temperature = config.get("temperature", None)
+        self.max_tokens = config.get("max_tokens", None)
+        self.top_p = config.get("top_p", None)
+        self.timeout = config.get("timeout", 120)
+        self.enable_python_tool = config.get('enable_python_tool', False)
 
     def create_messages(self, system_prompt: str, user_prompt: str) -> List[Dict[str, str]]:
         """Create message array for the API"""
@@ -117,7 +118,7 @@ class LLMClient:
             payload["tool_choice"] = "auto"
 
         # Make API call
-        with httpx.Client(timeout=120.0) as client:
+        with httpx.Client(timeout=self.timeout) as client:
             response = client.post(
                 self.endpoint,
                 headers=self.headers,
