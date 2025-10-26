@@ -7,6 +7,7 @@ import json
 import os
 from core.llm_client import LLMClient
 from core.file_parsers import parse_file
+import re
 
 
 class ExtractionWorker(QThread):
@@ -16,6 +17,20 @@ class ExtractionWorker(QThread):
     log = Signal(str)
     finished = Signal()
     error = Signal(str)
+
+    @staticmethod
+    def parse_code_fences(s):
+        # This regex looks for:
+        # 1. Three backticks (```) followed by an optional language identifier.
+        # 2. Any character (including newlines) non-greedily, until...
+        # 3. Three backticks (```) again.
+        regexp = r"```(.*?)\n(.*?)\n```"
+        matches = re.finditer(regexp, s, re.DOTALL)  # re.DOTALL makes . match newlines
+
+        parsed_fences = []
+        for match in matches:
+            parsed_fences.append(match.group(2))
+        return parsed_fences
 
     def __init__(self, files: List[str], model_config: Dict[str, Any],
                  schema_config: Dict[str, Any], output_file: str,
@@ -115,9 +130,10 @@ class ExtractionWorker(QThread):
 
         # Build the extraction prompt
         if self.multiple_per_file:
-            quantity_instruction = "Extract ALL matching records from this content. Return an array of records if there are multiple."
+            quantity_instruction = "Extract ALL matching records from this content. " \
+                                   "Return multiple code fences if there are multiple."
         else:
-            quantity_instruction = "Extract ONE record from this content."
+            quantity_instruction = "Extract ONE record from this content, wrapped by code fences."
 
         format_instruction = """
 Return the result as valid JSON that conforms to the provided JSON Schema.
@@ -145,7 +161,7 @@ Return ONLY valid JSON. Do not include any explanatory text outside the JSON."""
 File: {os.path.basename(file_path)}
 
 Content:
-{content[:10000]}  # Limit content length
+{content}
 """
 
         # Call LLM with tool support
@@ -162,43 +178,25 @@ Content:
     def parse_llm_response(self, response_text: str) -> Any:
         """Parse the LLM response to extract JSON data"""
         # Try to find JSON in the response
-        response_text = response_text.strip()
+        response_text = self.parse_code_fences(response_text)
 
-        # Remove Markdown code blocks if present
-        if response_text.startswith('```'):
-            lines = response_text.split('\n')
-            # Remove first and last lines
-            response_text = '\n'.join(lines[1:-1])
+        data = []
+        for i in response_text:
+            try:
+                data.append(json.loads(i))
+            except json.JSONDecodeError as e:
+                self.log.emit(f"Failed to parse (Partial) JSON response: {str(e)}")
+                self.log.emit(f"Partial Response: {i}")
+        return data
 
-        if response_text.startswith('```json'):
-            response_text = response_text[7:]
-        if response_text.endswith('```'):
-            response_text = response_text[:-3]
-
-        response_text = response_text.strip()
-
-        try:
-            data = json.loads(response_text)
-            return data
-        except json.JSONDecodeError as e:
-            self.log.emit(f"Failed to parse JSON response: {str(e)}")
-            self.log.emit(f"Response was: {response_text[:200]}")
-            return None
-
-    def save_extracted_data_json(self, data: Any, source_file_path: str, file_index: int):
+    def save_extracted_data_json(self, data: List, source_file_path: str, file_index: int):
         """Save extracted data to separate JSON file(s)"""
         # Get base filename without extension
         base_name = os.path.splitext(os.path.basename(source_file_path))[0]
 
-        # Normalize data to list
-        if not isinstance(data, list):
-            data_list = [data]
-        else:
-            data_list = data
-
         # Save each record to a separate file
-        for record_index, record in enumerate(data_list):
-            if len(data_list) > 1:
+        for record_index, record in enumerate(data):
+            if len(data) > 1:
                 # Multiple records - add record number
                 output_filename = f"{base_name}_record_{record_index + 1}.json"
             else:
