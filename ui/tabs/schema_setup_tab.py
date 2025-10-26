@@ -259,11 +259,11 @@ class SchemaSetupTab(QWidget):
             item.setText(3, prop_desc)
 
             # Store data
-            item.setData(0, Qt.UserRole, {
-                "name": prop_name,
-                "type": prop_type,
-                "description": prop_desc
-            })
+            # item.setData(0, Qt.UserRole, {
+            #     "name": prop_name,
+            #     "type": prop_type,
+            #     "description": prop_desc
+            # })
 
             if parent_item is None:
                 self.fields_tree.addTopLevelItem(item)
@@ -280,6 +280,15 @@ class SchemaSetupTab(QWidget):
                     # Array of objects
                     self.populate_tree_from_schema(items_def["properties"], items_def["required"], item)
                     item.setExpanded(True)
+                else:
+                    # Option 1: Add a child item for the item type
+                    item_type_str = items_def.get("type", "unknown")
+                    child_item = QTreeWidgetItem()
+                    child_item.setText(0, f"item")
+                    child_item.setText(1, item_type_str)
+                    child_item.setText(2, "")  # Not directly "required" in the same sense
+                    child_item.setText(3, items_def["description"])
+                    item.addChild(child_item)
 
     def validate_schema(self):
         """Validate the schema"""
