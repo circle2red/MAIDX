@@ -4,6 +4,7 @@ LLM Client - Handles API calls to language models using httpx
 import httpx
 import json
 from typing import Dict, List, Any, Optional
+from core import python_tool
 
 
 class LLMClient:
@@ -54,23 +55,7 @@ class LLMClient:
         tools = []
 
         if self.enable_python_tool:
-            tools.append({
-                "type": "function",
-                "function": {
-                    "name": "execute_python",
-                    "description": "Execute Python code safely. Use this to perform calculations, data transformations, or date/time conversions. The code should print() the result.",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "code": {
-                                "type": "string",
-                                "description": "Python code to execute. Must use print() to output results."
-                            }
-                        },
-                        "required": ["code"]
-                    }
-                }
-            })
+            tools.append(python_tool.tool_desc)
 
         return tools
 
@@ -151,7 +136,7 @@ class LLMClient:
         Returns:
             Final response dictionary
         """
-        from core.tools import execute_python_tool
+        from core.python_tool import run_python
 
         conversation_history = []
 
@@ -218,8 +203,8 @@ class LLMClient:
                 function_args = json.loads(tool_call['function']['arguments'])
 
                 # Execute the tool
-                if function_name == 'execute_python':
-                    tool_result = execute_python_tool(function_args['code'])
+                if function_name == 'run_python':
+                    tool_result = run_python(function_args['code'])
                 else:
                     tool_result = {"error": f"Unknown tool: {function_name}"}
 
