@@ -34,7 +34,8 @@ class ExtractionWorker(QThread):
 
     def __init__(self, files: List[str], model_config: Dict[str, Any],
                  schema_config: Dict[str, Any], output_file: str,
-                 multiple_per_file: bool = False):
+                 multiple_per_file: bool = False,
+                 log_raw_output: bool = False):
         super().__init__()
         self.files = files
         self.model_config = model_config
@@ -42,6 +43,7 @@ class ExtractionWorker(QThread):
         self.output_file = output_file
         self.multiple_per_file = multiple_per_file
         self.should_stop = False
+        self.log_raw_output = log_raw_output
 
     def stop(self):
         """Stop the extraction process"""
@@ -167,13 +169,7 @@ Content:
         # Call LLM with tool support
         response = llm_client.call_with_tools(system_prompt, user_prompt)
 
-        # Parse the response
-        response_text = response['content'].strip()
-
-        # Extract JSON from response
-        extracted_data = self.parse_llm_response(response_text)
-
-        return extracted_data
+        return response
 
     def parse_llm_response(self, response_text: str) -> Any:
         """Parse the LLM response to extract JSON data"""
@@ -189,11 +185,16 @@ Content:
                 self.log.emit(f"Partial Response: {i}")
         return data
 
-    def save_extracted_data_json(self, data: List, source_file_path: str, file_index: int):
+    def save_extracted_data_json(self, raw_llm_response, source_file_path: str, file_index: int):
         """Save extracted data to separate JSON file(s)"""
         # Get base filename without extension
         base_name = os.path.splitext(os.path.basename(source_file_path))[0]
+        if self.log_raw_output:
+            raw_log_path = os.path.join(self.json_output_dir, f"{base_name}_extract_log.json")
+            with open(raw_log_path, 'w', encoding='utf-8') as f:
+                f.write(json.dumps(raw_llm_response))
 
+        data = self.parse_llm_response(raw_llm_response['content'].strip())
         # Save each record to a separate file
         for record_index, record in enumerate(data):
             if len(data) > 1:

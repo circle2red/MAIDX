@@ -4,7 +4,7 @@ Data Extraction Tab - Import files and extract data
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QGroupBox,
                                QLabel, QPushButton, QLineEdit, QRadioButton,
                                QProgressBar, QTextEdit, QFileDialog, QMessageBox,
-                               QButtonGroup)
+                               QButtonGroup, QCheckBox)
 from PySide6.QtCore import Qt, QThread, Signal
 import os
 
@@ -14,6 +14,7 @@ class DataExtractionTab(QWidget):
 
     def __init__(self):
         super().__init__()
+        self.save_log = None
         self.model_tab = None
         self.schema_tab = None
         self.extraction_thread = None
@@ -87,6 +88,12 @@ class DataExtractionTab(QWidget):
         output_file_layout.addWidget(self.output_browse_btn)
 
         output_layout.addLayout(output_file_layout)
+
+        output_log_layout = QHBoxLayout()
+        self.log_raw = QCheckBox("Log raw requests and responses")
+        output_log_layout.addWidget(self.log_raw)
+        output_layout.addLayout(output_log_layout)
+
         output_group.setLayout(output_layout)
         layout.addWidget(output_group)
 
@@ -208,7 +215,8 @@ class DataExtractionTab(QWidget):
             model_config=model_config,
             schema_config=schema_config,
             output_file=self.output_input.text(),
-            multiple_per_file=self.multiple_data_radio.isChecked()
+            multiple_per_file=self.multiple_data_radio.isChecked(),
+            log_raw_output=self.log_raw.isChecked(),
         )
 
         self.extraction_thread.progress.connect(self.update_progress)
