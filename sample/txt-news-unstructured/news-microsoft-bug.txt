@@ -1,0 +1,39 @@
+https://www.forbes.com/sites/daveywinder/2025/10/26/act-now---microsoft-issues-emergency-windows-update-as-attacks-begin/
+Act Now — Microsoft Issues Emergency Windows Update As Attacks Begin
+
+ByDavey Winder,
+
+Senior Contributor.
+Davey Winder is a veteran cybersecurity writer, hacker and analyst.
+Oct 26, 2025, 05:24am EDT
+Microsoft logo on smartphone.
+Windows Server is under attack, act now.
+SOPA Images/LightRocket via Getty Images
+
+Updated October 26 with more technical information regarding the latest Microsoft Windows emergency security update addressing CVE-2025-59287, a critical vulnerability within the Windows Server Update Service that could enable a threat actor to remotely execute malicious code and is already being used in attacks, according to the Cybersecurity Infrastructure and Security Agency.
+
+Hot on the heels of a Chrome emergency security update issued by Google, Microsoft has now also confirmed an emergency fix for a critical Windows vulnerability. Acting immediately is paramount, as the Cybersecurity and Infrastructure Security Agency has warned that attacks are already underway and issued a binding directive requiring federal agencies to update now. Here’s what you need to know and do about CVE-2025-59287.
+ForbesPayPal Users Warned ‘Do Not Pay, Do Not Phone’ As Attackers Strike
+By Davey Winder
+Microsoft Confirms Emergency Security Update For Windows Server Users
+
+Less than a week after CISA issued a warning for federal agencies to update Windows Server, Windows 10 and Windows 11 due to ongoing server message block attacks, lightning has struck twice for Windows Servers users. Now CISA has confirmed that attacks are underway that exploit CVE-2025-59287, a critical vulnerability within the Windows Server Update Service that can enable a hacker to remotely execute malicious code over the network.
+
+Microsoft stated: “The WSUS Server Role is not enabled by default on Windows servers. Windows servers that do not have the WSUS server role enabled are not vulnerable to this vulnerability. If the WSUS server role is enabled, the server will become vulnerable if the fix is not installed before the WSUS server role is enabled.”
+
+“Our team ran a preliminary search for WSUS servers across the internet,” Bas van den Berg, a cybersecurity researcher at Eye Security, said. “They looked for Internet Information Service servers with specific ports 8530 (http) or 8531 (https) on Shodan and Fofa and yielded approximately 8,000 servers.” Eye Security then notified the relevant authorities, as well as threat intelligence sharing partners with whom it works alongside. According to an Eye Security LinkedIn post, which first confirmed active exploitation of CVE-2025-59287, its telemetry has revealed that there are now at least 2,500 WSUS servers still exposed and at risk across the world.
+ForbesLastPass Warns ‘Are You Dead?’ Master Password Hack Attacks Ongoing
+By Davey Winder
+America’s Security Agency Urges Every Organization To Update Now As Attacks Continue
+
+CISA, meanwhile, has issued a warning giving certain federal agencies just two weeks to ensure they do so under a binding directive. America’s Security Agency also said that it “strongly urges organizations to implement Microsoft’s updated Windows Server Update Service Remote Code Execution Vulnerability guidance, or risk an unauthenticated actor achieving remote code execution with system privileges.”
+
+CISA recommends the following course of action:
+
+    Identify servers that are currently configured to be vulnerable to exploitation.
+    Apply the out-of-band security update released on October 23, 2025, to all servers so identified.
+    Reboot WSUS servers after installation to complete mitigation.
+
+If you cannot update right now, it is advised that the WSUS server role be disabled and that inbound traffic to ports 8530 and 8531 be blocked at the host firewall.
+
+Microsoft said that it’s important that Windows Server admins “do not undo either of these workarounds until after you have installed the update.” I know it’s the weekend, but hey, you know what to do.

@@ -1,0 +1,41 @@
+{
+  "title": "Data Schema",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "The title of the news (unchanged)"
+    },
+	"category": {
+      "type": "string",
+      "description": "Choose from: \"Technology\", \"Entertainment\" and \"Health\""
+    },
+    "reporter": {
+      "type": "array",
+      "description": "the reporters of the news, an array of names",
+      "items": {
+        "type": "string",
+        "description": "each reporter's name"
+      }
+    },
+    "date": {
+      "type": "number",
+      "description": "the date of news in YYYYMMDD format (e.g. 20140215)"
+    },
+    "summary": {
+      "type": "string",
+      "description": "summarize of the news in 50 words"
+    },
+    "emotion": {
+      "type": "number",
+      "description": "Use -1=negative, 0=no attitude, 1=positive"
+    }
+  },
+  "required": [
+    "title",
+    "reporter",
+    "date",
+    "summary",
+    "emotion"
+  ]
+}

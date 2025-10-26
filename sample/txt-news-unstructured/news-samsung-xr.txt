@@ -1,0 +1,65 @@
+https://edition.cnn.com/2025/10/21/tech/samsung-galaxy-xr-headset-release-price-google-ai
+ Samsung’s big answer to the Apple Vision Pro is here. I got to try it
+By
+Lisa Eadicicco
+Oct 22, 2025
+
+SamsungGalaxyXR.jpg
+Samsung’s new Galaxy XR headset is here. What it’s like to use
+
+
+You can already use Google Maps to virtually “explore” a city on the other side of the world without leaving your seat. But what if you could take that a step further by feeling like you’re inside the map? And what if you could learn about the restaurant on the corner or a landmark in the distance just by looking at it and asking?
+
+That ability to view apps on a much larger virtual screen and talk with a digital assistant that can see what you’re seeing is one of the touted features of the Galaxy XR, Samsung’s new mixed reality headset, which launched October 21 for $1,800. Samsung is one of many tech companies that have tried to make virtual and augmented reality headsets as pervasive as smartphones and laptops, although such devices are still a niche primarily appealing to early adopters, tech enthusiasts and gamers.
+
+That includes Apple’s $3,500 Vision Pro headset, which has struggled to attract developers and resonate with buyers, according to reports from The Wall Street Journal and Bloomberg. Both Apple’s and Samsung’s devices seek to establish a new type of headset that offers different levels of immersion, from virtual screens to digital environments that fully envelop a user’s field of view.
+Related article
+A woman plays a video game with the Oculus Rift VR headset at the mk2 VR, a place dedicated to virtual reality in Paris, France, December 5, 2016.
+
+Tech promised virtual reality would revolutionize entertainment. That moment might finally be closer than we think.
+
+Samsung is hoping that its latest headset, which it developed in partnership with Google, will win over consumers with its implementation of the search giant’s Gemini assistant. The digital helper is embedded throughout the headset’s operating system, meaning it can answer questions about content being viewed in the device.
+
+The new headset is not only Android’s first major rival to the Vision Pro, but Samsung’s and Google’s gamble at what may be the next evolution of the personal computer, as tech giants race to supplant the smartphone with new AI-powered gadgets.
+
+“It does take you closer to that sort of Jarvis scenario from sci-fi of having a digital assistant that can really be a companion by your side, understand your context, and you can invoke actions as simply as having a conversation,” Shahram Izadi, vice president and general manager of the Android XR software powering the headset, told CNN in an interview.
+Samsung's Galaxy XR headset is Android's answer to the Apple Vision Pro.
+Samsung's Galaxy XR headset is Android's answer to the Apple Vision Pro.
+Madeleine Stix/CNN
+
+Like Apple’s Vision Pro headset, Samsung’s headset is intended for productivity and entertainment. Wearers can view Android apps on a much larger virtual screen than a TV or computer monitor. Certain apps also work differently from what you’d experience on a smartphone; images and videos in Google Photos can be viewed in 3D, similar to the Vision Pro’s spatial photos.
+
+Navigating the software involves using hand gestures and speech, although the headset also has a button for summoning Google’s Gemini and a touchpad.
+
+But what really makes Samsung’s headset stand out is the way it works with Gemini.
+
+When I asked questions about photos such as: “What part of the world does that tree grow in?” or “What’s the best time of year to go to this location?” Gemini not only responded but offered to book flight tickets.
+Related article
+Left: Meta CEO Mark Zuckerberg; right: Apple CEO Tim Cook.
+
+The rivalry between Meta and Apple is moving to a new playing field: virtual reality
+
+I had a similar experience when using Google Maps on the headset. As I panned around New York, I asked Gemini about points of interest without having to specify the location since it knew what I was looking at. Users must choose to share their screen with Gemini before asking questions about content they’re viewing.
+
+The headset felt relatively light to wear during my roughly 30-minute demo, and it was easier to adjust the headband’s size compared to previous virtual reality headsets I’ve tried. But it’s still far heavier than a pair of glasses, so it’s unclear how comfortable it will be to wear for long stretches of time.
+
+Using Gemini in the Galaxy XR headset feels like a bigger shift toward using AI to get things done that may have previously required multiple steps or more than one app. Google has been reorienting its Android smartphones’ software around this concept, with features like Circle to Search, which performs a Google search based on what’s on your phone’s screen.
+You can navigate the headset's software using hand gestures.
+You can navigate the headset's software using hand gestures.
+Madeleine Stix/CNN
+
+Still, Samsung and Google are wrestling with a difficult question: Is there room for yet another gadget in people’s lives?
+
+Virtual reality headsets haven’t taken off because the use case doesn’t justify the price for most people. While $1,800 is far less expensive than the Apple Vision Pro, it’s still a splurge for most households.
+
+But Drew Blackard, senior vice president of mobile product management for Samsung Electronics America, said he thinks $1,800 could draw in consumers who weren’t interested in virtual reality before.
+
+However, he acknowledged it’s still a steep cost.
+
+“Is that, you know, enough to drive mass market adoption? Probably not,” he said in a CNN interview. “You probably need to see it come down over time.”
+
+Samsung and Google see the Galaxy XR headset as a starting point for a new wave of AI-powered eyewear, including upcoming smart glasses.
+
+Google is already thinking about future use cases: Gemini will one day be able to track a user’s expressions, said Izadi, although that functionality is currently in a prototype stage. Doing so could make chatting with Gemini feel more natural, he said, which could be key for a product like the Galaxy XR that was designed primarily with AI usage in mind.
+
+“You can imagine a world where, by understanding the user’s emotions or their expressions, you can react accordingly,” he said. “Much like the conversations that we’re having in the real world.”
