@@ -5,9 +5,15 @@ MAIDX is a powerful desktop application for extracting structured data from docu
 ## Features
 
 - **Multi-Model Support**: Works with GPT, DeepSeek, Grok, and custom API endpoints
-- **Multiple File Formats**: Process TXT, PDF, DOCX, and image files (JPG, PNG)
-- **Flexible Schema Definition**: Define extraction schemas in JSON or SQLite format
+- **Multiple File Formats**: Process TXT
+    - Pending: PDF, DOCX, and image files (JPG, PNG)
+
+- **Flexible Schema Definition**: Define extraction schemas in JSON format
+    - Pending: SQLite 
+
 - **Tool Use**: LLMs can execute safe Python code for calculations and transformations
+    - Pending: Safer options 
+
 - **Batch Processing**: Process entire folders of documents automatically
 - **Progress Tracking**: Real-time progress bar and detailed logging
 
@@ -16,7 +22,7 @@ MAIDX is a powerful desktop application for extracting structured data from docu
 1. Clone this repository:
 ```bash
 git clone <repository-url>
-cd maidx-2
+cd maidx
 ```
 
 2. Install dependencies:
@@ -24,10 +30,11 @@ cd maidx-2
 pip install -r requirements.txt
 ```
 
-3. For OCR support (image parsing), you also need to install Tesseract OCR:
-   - **Windows**: Download from https://github.com/UB-Mannheim/tesseract/wiki
-   - **macOS**: `brew install tesseract`
-   - **Linux**: `sudo apt-get install tesseract-ocr`
+Pending: For OCR support (image parsing), you also need to install Tesseract OCR:
+
+- **Windows**: Download from https://github.com/UB-Mannheim/tesseract/wiki
+- **macOS**: `brew install tesseract`
+- **Linux**: `sudo apt-get install tesseract-ocr`
 
 ## Usage
 
@@ -41,25 +48,13 @@ python main.py
    - Enter your API key
    - Configure model parameters (temperature, max tokens, etc.)
    - Enable/disable the Python execution tool
-
 3. **Schema Setup Tab**:
-   - Choose between JSON or SQLite schema
    - Define fields manually or write the schema directly
    - Add descriptions for each field to guide the LLM
-   - Example SQLite schema:
-   ```sql
-   CREATE TABLE news (
-       title TEXT,           -- The title of the news article
-       person TEXT,          -- Main characters, comma-separated
-       timestamp INTEGER,    -- Unix timestamp
-       emotion INTEGER       -- 0 for negative, 1 for positive
-   );
-   ```
-
 4. **Data Extraction Tab**:
    - Select input folder containing your documents
-   - Choose extraction mode (one or multiple records per file)
-   - Specify output file (*.db for SQLite, *.json for JSON)
+       - Pending: Choose extraction mode (one or multiple records per file)
+   - Specify output path
    - Click "Start Extraction"
 
 ## Example Use Case
@@ -79,7 +74,7 @@ The LLM will:
 ## Architecture
 
 ```
-maidx-2/
+maidx/
 ├── main.py                 # Application entry point
 ├── ui/
 │   ├── main_window.py      # Main window with tabs
@@ -122,7 +117,7 @@ MAIDX works with any OpenAI-compatible API endpoint. The following services are 
 
 ## License
 
-MIT License
+WTFPL
 
 ## Contributing
 
