@@ -4,7 +4,7 @@ LLM Client - Handles API calls to language models using httpx
 import httpx
 import json
 from typing import Dict, List, Any, Optional
-from core import python_tool
+from core.llm_tools import python_tool
 
 
 class LLMClient:
@@ -136,7 +136,7 @@ class LLMClient:
         Returns:
             Final response dictionary
         """
-        from core.python_tool import run_python
+        from core.llm_tools.python_tool import run_python
 
         conversation_history = []
 
