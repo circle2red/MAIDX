@@ -48,23 +48,23 @@ class MethodSetupTab(QWidget):
         self.enable_seg.setChecked(True)
         segmentation_layout.addWidget(self.enable_seg)
 
-        row1 = QHBoxLayout()
+        row = QHBoxLayout()
         self.seg_max_text_len = QLineEdit()
         self.seg_max_text_len.setText("30000")
-        row1.addWidget(QLabel("Max text length: "))
-        row1.addWidget(self.seg_max_text_len)
+        row.addWidget(QLabel("Max text length: "))
+        row.addWidget(self.seg_max_text_len)
 
         self.seg_max_img = QLineEdit()
         self.seg_max_img.setText("1")
-        row1.addWidget(QLabel("Max image count: "))
-        row1.addWidget(self.seg_max_img)
+        row.addWidget(QLabel("Max image count: "))
+        row.addWidget(self.seg_max_img)
 
         self.seg_text_overlap = QLineEdit()
         self.seg_text_overlap.setText("1000")
-        row1.addWidget(QLabel("Text overlapping length: "))
-        row1.addWidget(self.seg_text_overlap)
+        row.addWidget(QLabel("Text overlapping length: "))
+        row.addWidget(self.seg_text_overlap)
 
-        segmentation_layout.addLayout(row1)
+        segmentation_layout.addLayout(row)
 
         segmentation_group.setLayout(segmentation_layout)
         layout.addWidget(segmentation_group)
@@ -77,14 +77,31 @@ class MethodSetupTab(QWidget):
         tool_group = QGroupBox("Tool Options")
         tool_layout = QVBoxLayout()
 
-        # Save intermediate results
+        # Restricted Python tool
+        row = QHBoxLayout()
         self.tool_python = QCheckBox("Restricted Python Tool")
         self.tool_python.setChecked(True)
-        tool_layout.addWidget(self.tool_python)
+        row.addWidget(self.tool_python)
 
+        self.tool_python_max_call = QLineEdit()
+        self.tool_python_max_call.setText("10")
+        row.addWidget(QLabel("Max Python calls per file: "))
+        row.addWidget(self.tool_python_max_call)
+
+        tool_layout.addLayout(row)
+
+        # Web fetch tool
+        row = QHBoxLayout()
         self.tool_web_fetch = QCheckBox("Web Fetch Tool")
         self.tool_web_fetch.setChecked(True)
-        tool_layout.addWidget(self.tool_web_fetch)
+        row.addWidget(self.tool_web_fetch)
+
+        self.tool_web_fetch_max_call = QLineEdit()
+        self.tool_web_fetch_max_call.setText("10")
+        row.addWidget(QLabel("Max web fetch calls per file: "))
+        row.addWidget(self.tool_web_fetch_max_call)
+
+        tool_layout.addLayout(row)
 
         # self.tool_web_search = QCheckBox("Web Search Tool")
         # self.tool_web_search.setChecked(True)
@@ -118,7 +135,9 @@ class MethodSetupTab(QWidget):
         multi_obj = self.enable_multi.isChecked()
 
         python_tool = self.tool_python.isChecked()
+        max_python_call = as_int(self.tool_python_max_call.text(), 10)
         web_fetch_tool = self.tool_web_fetch.isChecked()
+        max_web_fetch_call = as_int(self.tool_web_fetch_max_call.text(), 10)
 
         config = {
             "pdf_mode": pdf_mode,
@@ -128,7 +147,9 @@ class MethodSetupTab(QWidget):
             "overlapping_text_length": overlapping_text_length,
             "multi_obj": multi_obj,
             "python_tool": python_tool,
+            "max_python_call": max_python_call,
             "web_fetch_tool": web_fetch_tool,
+            "max_web_fetch_call": max_web_fetch_call,
         }
 
         return config
