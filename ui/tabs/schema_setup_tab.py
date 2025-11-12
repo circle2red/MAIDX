@@ -45,6 +45,7 @@ class SchemaSetupTab(QWidget):
         self.fields_tree.setColumnWidth(2, 60)
 
         self.fields_tree.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.fields_tree.itemClicked.connect(self.on_tree_item_clicked)
         fields_layout.addWidget(self.fields_tree)
 
 
@@ -87,6 +88,10 @@ class SchemaSetupTab(QWidget):
         self.add_child_btn = QPushButton("Add Child to Selected")
         self.add_child_btn.clicked.connect(self.add_child_field)
         row3.addWidget(self.add_child_btn)
+
+        self.edit_field_btn = QPushButton("Edit Selected")
+        self.edit_field_btn.clicked.connect(self.edit_selected_field)
+        row3.addWidget(self.edit_field_btn)
 
         self.delete_field_btn = QPushButton("Delete Selected")
         self.delete_field_btn.clicked.connect(self.delete_selected_field)
@@ -144,31 +149,7 @@ class SchemaSetupTab(QWidget):
 
     def get_placeholder_text(self):
         """Get placeholder text for schema editor"""
-        return """{
-  "title": "Data Schema",
-  "type": "object",
-  "properties": {
-    "field1": {
-      "type": "string",
-      "description": "Description here"
-    },
-    "nested_object": {
-      "type": "object",
-      "properties": {
-        "subfield": {"type": "number"}
-      }
-    },
-    "array_field": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "item_field": {"type": "string"}
-        }
-      }
-    }
-  }
-}"""
+        return """Generate the schema or input your schema manually."""
 
 
     def load_json(self):
@@ -382,6 +363,62 @@ class SchemaSetupTab(QWidget):
                     return
             parent_item.addChild(item)
             parent_item.setExpanded(True)
+
+        # Clear inputs
+        self.field_name_input.clear()
+        self.field_desc_input.clear()
+
+        self.schema_changed.emit()
+
+    def on_tree_item_clicked(self, item, column):
+        """Load selected tree item into the editor fields"""
+        if item:
+            self.field_name_input.setText(item.text(0))
+            self.field_type_combo.setCurrentText(item.text(1))
+            self.required_combo.setCurrentText(item.text(2))
+            self.field_desc_input.setText(item.text(3))
+
+    def edit_selected_field(self):
+        """Edit the selected field with current input values"""
+        selected = self.fields_tree.selectedItems()
+        if not selected:
+            QMessageBox.warning(self, "No Selection", "Please select a field to edit.")
+            return
+
+        item = selected[0]
+        name = self.field_name_input.text().strip()
+        field_type = self.field_type_combo.currentText()
+        required = self.required_combo.currentText()
+        description = self.field_desc_input.text().strip()
+
+        if not name:
+            QMessageBox.warning(self, "Invalid Input", "Field name cannot be empty.")
+            return
+
+        # Check if name changed and if new name conflicts with siblings
+        old_name = item.text(0)
+        if name != old_name:
+            parent = item.parent()
+            if parent is None:
+                # Check root level siblings
+                for i in range(self.fields_tree.topLevelItemCount()):
+                    sibling = self.fields_tree.topLevelItem(i)
+                    if sibling != item and sibling.text(0) == name:
+                        QMessageBox.warning(self, "Invalid Input", f"{name} already exists in root!")
+                        return
+            else:
+                # Check siblings under same parent
+                for i in range(parent.childCount()):
+                    sibling = parent.child(i)
+                    if sibling != item and sibling.text(0) == name:
+                        QMessageBox.warning(self, "Invalid Input", f"{name} already exists in {parent.text(0)}!")
+                        return
+
+        # Update the item
+        item.setText(0, name)
+        item.setText(1, field_type)
+        item.setText(2, required)
+        item.setText(3, description)
 
         # Clear inputs
         self.field_name_input.clear()
