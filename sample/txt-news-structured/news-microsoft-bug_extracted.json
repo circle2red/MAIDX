@@ -1,0 +1,10 @@
+{
+  "title": "Act Now — Microsoft Issues Emergency Windows Update As Attacks Begin",
+  "category": "Technology",
+  "reporter": [
+    "Davey Winder"
+  ],
+  "date": 20251026,
+  "summary": "Microsoft has issued an emergency security update for a critical Windows Server vulnerability (CVE-2025-59287) that enables remote code execution. Attacks are already underway, with CISA warning federal agencies to update immediately. Approximately 8,000 WSUS servers were found exposed, with 2,500 still at risk globally.",
+  "emotion": -1
+}
