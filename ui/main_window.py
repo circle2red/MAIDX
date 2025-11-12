@@ -4,6 +4,7 @@ Main window with tab interface
 from PySide6.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout
 from ui.tabs.model_setup_tab import ModelSetupTab
 from ui.tabs.schema_setup_tab import SchemaSetupTab
+from ui.tabs.method_setup_tab import MethodSetupTab
 from ui.tabs.data_extraction_tab import DataExtractionTab
 
 
@@ -27,13 +28,16 @@ class MainWindow(QMainWindow):
         # Create tabs
         self.model_setup_tab = ModelSetupTab()
         self.schema_setup_tab = SchemaSetupTab()
+        self.method_setup_tab = MethodSetupTab()
         self.data_extraction_tab = DataExtractionTab()
 
         # Add tabs
         self.tabs.addTab(self.model_setup_tab, "Model Setup")
         self.tabs.addTab(self.schema_setup_tab, "Schema Setup")
+        self.tabs.addTab(self.method_setup_tab, "Method Setup")
         self.tabs.addTab(self.data_extraction_tab, "Data Extraction")
 
         # Connect tabs to share data
         self.data_extraction_tab.set_model_tab(self.model_setup_tab)
         self.data_extraction_tab.set_schema_tab(self.schema_setup_tab)
+        self.data_extraction_tab.set_method_tab(self.method_setup_tab)

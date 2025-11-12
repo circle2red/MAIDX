@@ -17,6 +17,7 @@ class DataExtractionTab(QWidget):
         self.save_log = None
         self.model_tab = None
         self.schema_tab = None
+        self.method_tab = None
         self.extraction_thread = None
         self.init_ui()
 
@@ -27,6 +28,10 @@ class DataExtractionTab(QWidget):
     def set_schema_tab(self, schema_tab):
         """Set reference to schema setup tab"""
         self.schema_tab = schema_tab
+
+    def set_method_tab(self, method_tab):
+        """Set reference to method setup tab"""
+        self.method_tab = method_tab
 
     def init_ui(self):
         layout = QVBoxLayout(self)
