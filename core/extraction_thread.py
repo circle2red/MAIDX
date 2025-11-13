@@ -5,12 +5,12 @@ from PySide6.QtCore import QThread, Signal
 from typing import List, Dict, Any
 import json
 import os
-from core.llm_client import LLMClient
+from core.old_llm_client import LLMClient
 from core.file_parsers import parse_file
 import re
 
 
-class ExtractionWorker(QThread):
+class ExtractionThread(QThread):
     """Worker thread for extracting data from files"""
 
     progress = Signal(int, int)  # current, total

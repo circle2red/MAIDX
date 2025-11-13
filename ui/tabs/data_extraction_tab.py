@@ -213,9 +213,9 @@ class DataExtractionTab(QWidget):
         self.log_text.clear()
         self.add_log("Starting extraction process...")
 
-        from core.extraction_worker import ExtractionWorker
+        from core.extraction_thread import ExtractionThread
 
-        self.extraction_thread = ExtractionWorker(
+        self.extraction_thread = ExtractionThread(
             files=self.files_to_process,
             model_config=model_config,
             schema_config=schema_config,

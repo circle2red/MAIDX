@@ -184,7 +184,7 @@ class ModelSetupTab(QWidget):
 
     def test_connection(self):
         """Test the API connection"""
-        from core.llm_client import LLMClient
+        from core.old_llm_client import LLMClient
         try:
             client = LLMClient(config=self.get_config())
             resp = client.call(

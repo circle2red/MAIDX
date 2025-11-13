@@ -1,225 +1,201 @@
-"""
-LLM Client - Handles API calls to language models using httpx
-"""
+import base64
+import logging
 import httpx
 import json
-from typing import Dict, List, Any, Optional
-from core.llm_tools import python_tool
+from typing import Literal, Union
+from core.llm_tools import python_tool, web_fetch_tool
+from core.llm_tools.tools_manager import ToolsManager
 
 
 class LLMClient:
     """Client for making API calls to language models"""
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, endpoint, model_name, api_key=None, headers=None, tools_manager=None,
+                 temperature=None, max_tokens=None, top_p=None, timeout=None, log_llm_call=False):
         """
         Initialize the LLM client
 
         Args:
-            config: Configuration dictionary containing:
-                - endpoint: API endpoint URL
-                - model: Model name
-                - headers: HTTP headers including auth
-                - temperature: Sampling temperature
-                - max_tokens: Maximum tokens to generate
-                - top_p: Nucleus sampling parameter
-                - enable_python_tool: Whether to enable Python execution tool
+            - endpoint: API endpoint URL
+            - model: Model name
+            - api_key: LLM api key (or be included in headers)
+            - headers: HTTP headers
+            - tools limit: Limit how much tools can be used
+            - temperature: Sampling temperature
+            - max_tokens: Maximum tokens to generate
+            - top_p: Nucleus sampling parameter
+            - timeout: timeout when accessing LLM, leave empty for no timeout
+            - log_llm_call: log LLM response
         """
-        self.endpoint = config['endpoint']
-        self.model = config['model']
-        self.headers = config['headers']
-        self.temperature = config.get("temperature", None)
-        self.max_tokens = config.get("max_tokens", None)
-        self.top_p = config.get("top_p", None)
-        self.timeout = config.get("timeout", 120)
-        self.enable_python_tool = config.get('enable_python_tool', False)
 
-    def create_messages(self, system_prompt: str, user_prompt: str) -> List[Dict[str, str]]:
-        """Create message array for the API"""
-        messages = []
+        self.endpoint = endpoint
+        self.model_name = model_name
+        if type(headers) is str:
+            headers = json.loads(headers)
+        if not headers:
+            headers = {}
+        self.headers = headers
+        if api_key:
+            self.headers['Authorization'] = f"Bearer {api_key}"
+        self.temperature = temperature
+        self.max_tokens = max_tokens
+        self.top_p = top_p
+        self.messages = []
+        if not tools_manager:
+            tools_manager = ToolsManager(python_limit=0, web_fetch_limit=0)
+        self.tools_manager = tools_manager
+        self.timeout = timeout
+        self.log_llm_call = log_llm_call
 
-        if system_prompt:
-            messages.append({
-                "role": "system",
-                "content": system_prompt
-            })
-
-        messages.append({
-            "role": "user",
-            "content": user_prompt
+    def add_text_message(self, role: Literal["user", "assistant", "system"], msg: str):
+        """Add a pure text message to LLM history"""
+        self.messages.append({
+            "role": role,
+            "content": msg,
         })
 
-        return messages
-
-    def create_tools(self) -> List[Dict[str, Any]]:
-        """Create tools definition for function calling"""
-        tools = []
-
-        if self.enable_python_tool:
-            tools.append(python_tool.tool_desc)
-
-        return tools
-
-    def call(self, system_prompt: str, user_prompt: str, conversation_history: Optional[List[Dict]] = None) -> Dict[str, Any]:
+    def add_image_message(self, role, img_path:str=None, img_b64:Union[bytes,str]=None, detail="high"):
         """
-        Make a call to the LLM API
-
-        Args:
-            system_prompt: System prompt for the model
-            user_prompt: User prompt
-            conversation_history: Optional previous messages for multi-turn conversations
-
-        Returns:
-            Response dictionary with 'content', 'tool_calls', and 'finish_reason'
+            Add image to LLM history
+            - img_path: url (http, https or local path)
+            - img_b64: base64-ed image with headers (str or bytes)
+            Provide one. if both, img_b64 is used
         """
-        messages = conversation_history if conversation_history else []
+        if (not img_path) and (not img_b64):
+            raise ValueError("Neither img_path nor img_b64 is provided")
 
-        # Add system message if not in history
-        if not any(msg.get('role') == 'system' for msg in messages):
-            if system_prompt:
-                messages.insert(0, {
-                    "role": "system",
-                    "content": system_prompt
-                })
-
-        # Add user message
-        messages.append({
-            "role": "user",
-            "content": user_prompt
-        })
-
-        # Prepare request payload
-        payload = {
-            "model": self.model,
-            "messages": messages,
-            "temperature": self.temperature,
-            "max_tokens": self.max_tokens,
-            "top_p": self.top_p
-        }
-
-        # Add tools if enabled
-        tools = self.create_tools()
-        if tools:
-            payload["tools"] = tools
-            payload["tool_choice"] = "auto"
-
-        # Make API call
-        with httpx.Client(timeout=self.timeout) as client:
-            response = client.post(
-                self.endpoint,
-                headers=self.headers,
-                json=payload
-            )
-            response.raise_for_status()
-
-        result = response.json()
-
-        # Parse response
-        choice = result['choices'][0]
-        message = choice['message']
-
-        return {
-            'content': message.get('content', ''),
-            'tool_calls': message.get('tool_calls', []),
-            'finish_reason': choice.get('finish_reason', 'stop'),
-            'full_message': message
-        }
-
-    def call_with_tools(self, system_prompt: str, user_prompt: str, max_iterations: int = 5) -> Dict[str, Any]:
-        """
-        Make a call to the LLM with tool execution support
-
-        Args:
-            system_prompt: System prompt for the model
-            user_prompt: User prompt
-            max_iterations: Maximum number of tool call iterations
-
-        Returns:
-            Final response dictionary
-        """
-        from core.llm_tools.python_tool import run_python
-
-        conversation_history = []
-
-        # Add system message
-        if system_prompt:
-            conversation_history.append({
-                "role": "system",
-                "content": system_prompt
-            })
-
-        # Add initial user message
-        conversation_history.append({
-            "role": "user",
-            "content": user_prompt
-        })
-
-        for iteration in range(max_iterations):
-            # Make API call with current conversation
-            payload = {
-                "model": self.model,
-                "messages": conversation_history,
-                "temperature": self.temperature,
-                "max_tokens": self.max_tokens,
-                "top_p": self.top_p
-            }
-
-            # Add tools if enabled
-            tools = self.create_tools()
-            if tools:
-                payload["tools"] = tools
-                payload["tool_choice"] = "auto"
-
-            # Make API call
-            with httpx.Client(timeout=120.0) as client:
-                response = client.post(
-                    self.endpoint,
-                    headers=self.headers,
-                    json=payload
-                )
-                response.raise_for_status()
-
-            result = response.json()
-            choice = result['choices'][0]
-            message = choice['message']
-
-            # Add assistant message to history
-            conversation_history.append(message)
-
-            # Check if there are tool calls
-            tool_calls = message.get('tool_calls', [])
-
-            if not tool_calls:
-                # No more tool calls, return final response
-                return {
-                    'content': message.get('content', ''),
-                    'tool_calls': [],
-                    'finish_reason': choice.get('finish_reason', 'stop'),
-                    'conversation_history': conversation_history
-                }
-
-            # Execute tool calls
-            for tool_call in tool_calls:
-                function_name = tool_call['function']['name']
-                function_args = json.loads(tool_call['function']['arguments'])
-
-                # Execute the tool
-                if function_name == 'run_python':
-                    tool_result = run_python(function_args['code'])
+        img_url = None
+        if img_path:
+            if img_path.startswith("http://") or img_path.startswith("https://"):
+                img_url = img_path
+            else:  # local img
+                with open(img_path, 'rb') as f:
+                    img_content = f.read()
+                img_content = base64.b64encode(img_content).decode('utf-8')
+                if img_path.endswith("jpg"):
+                    img_url = f'data:image/jpeg;base64,{img_content}'
+                elif img_path.endswith("png"):
+                    img_url = f"data:image/png;base64,{img_content}"
+                elif img_path.endswith("gif"):
+                    img_url = f"data:image/gif;base64,{img_content}"
                 else:
-                    tool_result = {"error": f"Unknown tool: {function_name}"}
+                    # defaults to jpg
+                    img_url = f'data:image/jpeg;base64,{img_content}'
+        if img_b64:
+            if type(img_b64) is str:
+                img_url = img_b64
+            else:
+                img_url = img_b64.decode('utf-8')
 
-                # Add tool result to conversation
-                conversation_history.append({
-                    "role": "tool",
-                    "tool_call_id": tool_call['id'],
-                    "name": function_name,
-                    "content": json.dumps(tool_result)
-                })
+        self.messages.append({
+            "role": role,
+            "content": [
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": img_url,
+                        "detail": detail
+                    }
+                }
+            ]
+        })
 
-        # Max iterations reached
-        return {
-            'content': "Maximum tool iterations reached",
-            'tool_calls': [],
-            'finish_reason': 'max_iterations',
-            'conversation_history': conversation_history
+    def get_current_msg_list(self):
+        return self.messages
+
+    def send_llm_request_once(self, add_to_messages=True, dry_run=False):
+        """
+        Send current messages to LLM to get a response.
+        May return partial response (such as tool call)
+        add_to_messages: add to current llm messages
+        dry_run: return payload instead
+        """
+        payload = {
+            "model": self.model_name,
+            "messages": self.messages,
         }
+        if self.temperature:
+            payload['temperature'] = self.temperature
+        if self.max_tokens:
+            payload['max_tokens'] = self.max_tokens
+        if self.top_p:
+            payload['top_p'] = self.top_p
+
+        if self.tools_manager.has_tools():
+            payload['tools'] = self.tools_manager.gen_tools_list_for_llm(add_limits_prompt=True)
+            payload['tool_choice'] = "auto"
+
+        if dry_run:
+            return payload
+
+        request = httpx.post(
+            url=self.endpoint,
+            headers=self.headers,
+            json=payload,
+            timeout=self.timeout,
+        )
+
+        resp = request.json()
+        if 'error' in resp:
+            raise ValueError(f"Error in LLM response: {resp}")
+        if self.log_llm_call:
+            logging.warning("LLM: " + resp['choices'][0]['message']['content'])
+        if add_to_messages:
+            self.messages.append(resp['choices'][0]['message'])
+
+        return resp
+
+    def send_llm_request(self, return_full=False, max_rounds=-1):
+        """
+        Send current messages to LLM to ensure a final answer.
+        params:
+        return_full: Return the full response structure. Set to false for only the response msg (str).
+        max_rounds: Specify how many rounds of LLM to be called, default unlimited
+        """
+        while max_rounds:  # != 0
+            resp = self.send_llm_request_once(add_to_messages=True)
+            msg = resp['choices'][0]['message']
+            finish_reason = resp['choices'][0]["finish_reason"]
+            if finish_reason == "tool_calls" or finish_reason == "function_call":
+                tool_result = self.tools_manager.execute_tool_from_llm_msg(msg)
+                self.messages.append(tool_result)
+            elif finish_reason == "stop" or finish_reason == "length":
+                if return_full:
+                    return resp
+                return msg['content']
+            else:  # "content_filter" or Null
+                return ""
+            max_rounds -= 1
+        return ""
+
+    def pretty_print_messages(self):
+        """Return pretty-printed LLM communication message"""
+        for msg in self.messages:
+            print(f"{msg['role']}: {msg['content']}")
+            print("\n\n")
+
+
+# debug test
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.WARNING)
+    import dotenv
+    import os
+    dotenv.load_dotenv()
+    # print(os.environ.values())
+
+    a = LLMClient(
+        endpoint=os.getenv("LLM_API"),
+        model_name=os.getenv("LLM_MODEL"),
+        api_key=os.getenv("LLM_KEY"),
+        tools_manager=ToolsManager(python_limit=3, web_fetch_limit=1),
+        timeout=120,
+    )
+
+    a.add_text_message("system", "You are a helpful assistant.")
+    a.add_text_message("user",
+                       "Use the tools to calculate: What is the day and date of 1942 days after "
+                       "3rd September 2013?")
+    a.add_text_message("user", "What is this website about: "
+                               "https://www.hko.gov.hk/textonly/v2/forecast/chinesewx2.htm")
+
+
