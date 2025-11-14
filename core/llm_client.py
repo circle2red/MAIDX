@@ -76,6 +76,8 @@ class LLMClient:
                     img_url = f'data:image/jpeg;base64,{img_content}'
                 elif img_path.endswith("png"):
                     img_url = f"data:image/png;base64,{img_content}"
+                elif img_path.endswith("bmp"):
+                    img_url = f"data:image/bmp;base64,{img_content}"
                 elif img_path.endswith("gif"):
                     img_url = f"data:image/gif;base64,{img_content}"
                 else:
@@ -103,12 +105,13 @@ class LLMClient:
     def get_current_msg_list(self):
         return self.messages
 
-    def send_llm_request_once(self, add_to_messages=True, dry_run=False):
+    def send_llm_request_once(self, add_to_messages=True, dry_run=False, return_full=True):
         """
         Send current messages to LLM to get a response.
         May return partial response (such as tool call)
         add_to_messages: add to current llm messages
         dry_run: return payload instead
+        return_full: Return the full response structure. Set to false for only the response msg (str).
         """
         payload = {
             "model": self.model_name,
@@ -143,7 +146,10 @@ class LLMClient:
         if add_to_messages:
             self.messages.append(resp['choices'][0]['message'])
 
-        return resp
+        if return_full:
+            return resp
+        else:
+            return resp['choices'][0]['message']['content']
 
     def send_llm_request(self, return_full=False, max_rounds=-1):
         """

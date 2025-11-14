@@ -6,6 +6,8 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QGroupBox,
                                QDoubleSpinBox, QSpinBox, QTextEdit, QCheckBox,
                                QFormLayout, QMessageBox)
 from PySide6.QtCore import Signal
+from core.llm_client import LLMClient
+import json
 
 
 class ModelSetupTab(QWidget):
@@ -138,23 +140,6 @@ class ModelSetupTab(QWidget):
         params_group.setLayout(params_layout)
         layout.addWidget(params_group)
 
-        # Tool Use Group
-        tools_group = QGroupBox("Tool Configuration")
-        tools_layout = QVBoxLayout()
-
-        # Enable Python tool
-        self.enable_python_tool = QCheckBox("Enable Safe Python Execution Tool")
-        self.enable_python_tool.setChecked(True)
-        tools_layout.addWidget(self.enable_python_tool)
-
-        # Future tools placeholder
-        # future_label = QLabel("(Additional tools can be added here in the future)")
-        # future_label.setStyleSheet("color: gray; font-style: italic;")
-        # tools_layout.addWidget(future_label)
-
-        tools_group.setLayout(tools_layout)
-        layout.addWidget(tools_group)
-
         # Test Connection Button
         test_btn_layout = QHBoxLayout()
         test_btn_layout.addStretch()
@@ -184,21 +169,27 @@ class ModelSetupTab(QWidget):
 
     def test_connection(self):
         """Test the API connection"""
-        from core.old_llm_client import LLMClient
         try:
-            client = LLMClient(config=self.get_config())
-            resp = client.call(
-                system_prompt="You are a helpful assistant.",
-                user_prompt="Say Hello World and nothing else."
+            config = self.get_config()
+            client = LLMClient(
+                endpoint=config['endpoint'],
+                model_name=config['model'],
+                headers=config['headers'],
+                temperature=config['temperature'],
+                max_tokens=config['max_tokens'],
+                top_p=config['top_p'],
+                timeout=config['timeout'],
             )
+            client.add_text_message("system", "You are a helpful assistant.")
+            client.add_text_message("user", "Say Hello World and nothing else.")
+            resp = client.send_llm_request_once(return_full=False)
             QMessageBox.information(self, "Test Connection",
-                                    f"Successful: Response with Hello World Request: {resp['content']}")
+                                    f"Successful: Response with Hello World Request: {resp}")
         except Exception as e:
             QMessageBox.warning(self, "Test Connection", f"Failure: {e}")
 
     def get_config(self):
         """Get the current model configuration"""
-        import json
 
         # Parse custom headers
         try:
@@ -215,9 +206,11 @@ class ModelSetupTab(QWidget):
         config = {
             "endpoint": self.endpoint_input.text(),
             "model": self.model_input.text(),
-            "api_key": self.api_key_input.text(),
             "headers": headers,
-            "enable_python_tool": self.enable_python_tool.isChecked()
+            "temperature": None,
+            "max_tokens": None,
+            "top_p": None,
+            "timeout": self.timeout_spin.value(),
         }
         if not self.temperature_use_default.isChecked():
             config["temperature"] = self.temperature_spin.value()

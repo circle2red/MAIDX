@@ -1,3 +1,5 @@
+# TODO: make this a class and make extraction_worker use this class
+# use class stores config
 """
 File parsers for various document formats
 """

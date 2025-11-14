@@ -562,7 +562,7 @@ class SchemaSetupTab(QWidget):
         """Handle manual editing of raw schema"""
         self.schema_changed.emit()
 
-    def get_schema_config(self):
+    def get_config(self):
         """Get the schema configuration"""
         raw_schema = self.schema_text.toPlainText().strip()
 

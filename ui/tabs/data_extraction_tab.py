@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QGroupBox,
                                QButtonGroup, QCheckBox)
 from PySide6.QtCore import Qt, QThread, Signal
 import os
+from core.extraction_thread import ExtractionThread
 
 
 class DataExtractionTab(QWidget):
@@ -84,9 +85,9 @@ class DataExtractionTab(QWidget):
 
         output_file_layout = QHBoxLayout()
         output_file_layout.addWidget(QLabel("Output Folder:"))
-        self.output_input = QLineEdit()
-        self.output_input.setPlaceholderText("JSON output path")
-        output_file_layout.addWidget(self.output_input)
+        self.output_folder_input = QLineEdit()
+        self.output_folder_input.setPlaceholderText("JSON output path")
+        output_file_layout.addWidget(self.output_folder_input)
 
         self.output_browse_btn = QPushButton("Browse...")
         self.output_browse_btn.clicked.connect(self.browse_output)
@@ -141,6 +142,11 @@ class DataExtractionTab(QWidget):
 
         layout.addLayout(btn_layout)
 
+        # DEBUG todo
+        self.test = QPushButton("test")
+        self.test.clicked.connect(self.get_config)
+        btn_layout.addWidget(self.test)
+
         layout.addStretch()
 
     def browse_folder(self):
@@ -167,7 +173,16 @@ class DataExtractionTab(QWidget):
         """Browse for output directory"""
         filename = QFileDialog.getExistingDirectory(self, "Select Output Directory")
         if filename:
-            self.output_input.setText(filename)
+            self.output_folder_input.setText(filename)
+
+    def get_config(self):
+        config = {
+            "files": self.files_to_process,  # list of file paths
+            "output_folder": self.output_folder_input.text(),  # str folder
+            "log_raw": self.log_raw.isChecked(),  # True/False
+        }
+        print(config)
+        return config
 
     def start_extraction(self):
         """Start the data extraction process"""
@@ -180,7 +195,7 @@ class DataExtractionTab(QWidget):
             QMessageBox.warning(self, "No Files", "No supported files found in the selected folder.")
             return
 
-        if not self.output_input.text():
+        if not self.output_folder_input.text():
             QMessageBox.warning(self, "No Output", "Please specify an output file.")
             return
 
@@ -194,7 +209,7 @@ class DataExtractionTab(QWidget):
 
         # Get configurations
         model_config = self.model_tab.get_config()
-        schema_config = self.schema_tab.get_schema_config()
+        schema_config = self.schema_tab.get_config()
 
         # Validate model config
         if not model_config['endpoint'] or not model_config['model']:
@@ -213,13 +228,11 @@ class DataExtractionTab(QWidget):
         self.log_text.clear()
         self.add_log("Starting extraction process...")
 
-        from core.extraction_thread import ExtractionThread
-
         self.extraction_thread = ExtractionThread(
             files=self.files_to_process,
             model_config=model_config,
             schema_config=schema_config,
-            output_file=self.output_input.text(),
+            output_file=self.output_folder_input.text(),
             multiple_per_file=self.multiple_data_radio.isChecked(),
             log_raw_output=self.log_raw.isChecked(),
         )

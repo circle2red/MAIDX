@@ -6,7 +6,7 @@ from typing import List, Dict, Any
 import json
 import os
 from core.old_llm_client import LLMClient
-from core.file_parsers import parse_file
+from core.old_file_parsers import parse_file
 import re
 
 
