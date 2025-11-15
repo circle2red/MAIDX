@@ -1,6 +1,8 @@
 """
 Method Setup Tab - Configure extraction methods and options
 """
+from typing import Literal
+
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QGroupBox,
                                QLabel, QCheckBox, QPushButton, QMessageBox, QButtonGroup, QRadioButton, QLineEdit,
                                QTextEdit)
@@ -16,6 +18,17 @@ class MethodSetupTab(QWidget):
         super().__init__()
         self.init_ui()
 
+    def set_default_segment_value(self, mode: Literal['img', 'txt']):
+        if mode == 'img':
+            self.seg_max_text_len.setText("")
+            self.seg_max_pages.setText("5")
+            self.seg_overlap.setText("1")
+        else:
+            self.seg_max_text_len.setText("30000")
+            self.seg_max_pages.setText("")
+            self.seg_overlap.setText("1000")
+
+
     def init_ui(self):
         layout = QVBoxLayout(self)
 
@@ -25,16 +38,26 @@ class MethodSetupTab(QWidget):
 
         # Vision-based extraction
         self.pdf_mode_group = QButtonGroup(self)
+
         self.pdf_pure_text_extraction = QRadioButton("Pure Text Extraction")
         self.pdf_pure_text_extraction.setChecked(True)
+        self.pdf_pure_text_extraction.toggled.connect(
+            lambda checked: self.set_default_segment_value(mode='txt') if checked else None
+        )
         self.pdf_mode_group.addButton(self.pdf_pure_text_extraction)
         pdf_layout.addWidget(self.pdf_pure_text_extraction)
 
         self.pdf_text_with_img = QRadioButton("Text Extraction + Image (Forced Segmentation by Page, *)")
+        self.pdf_text_with_img.toggled.connect(
+            lambda checked: self.set_default_segment_value(mode='img') if checked else None
+        )
         self.pdf_mode_group.addButton(self.pdf_text_with_img)
         pdf_layout.addWidget(self.pdf_text_with_img)
 
         self.pdf_page_as_img = QRadioButton("Page as Image (Forced Segmentation by Page, *)")
+        self.pdf_page_as_img.toggled.connect(
+            lambda checked: self.set_default_segment_value(mode='img') if checked else None
+        )
         self.pdf_mode_group.addButton(self.pdf_page_as_img)
         pdf_layout.addWidget(self.pdf_page_as_img)
 
