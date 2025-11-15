@@ -18,7 +18,7 @@ MAIDX is a powerful desktop application for extracting structured data from docu
       - Pending: Safer options
   - Web fetch tool to allow LLM search the web
       - Pending: Load some APIs
-  - Pending: DB related tools (RAG)
+  - Pending: DB related tools (RAG), to-do tool, self-reflection tool
 - **Batch Processing**: Process entire folders of documents automatically
 - **Progress Tracking**: Progress bar and detailed logging
     - Pending: Pause & Resume; DB Cache of LLM streams
