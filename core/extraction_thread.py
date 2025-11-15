@@ -82,7 +82,6 @@ class ExtractionThread(QThread):
                     self.log.emit("Extraction stopped by user.")
                     return
 
-                self.progress.emit(i + 1, total)
                 self.log.emit(f"Processing: {os.path.basename(file_path)}")
 
                 self.llm_client.clear_history()  # clear tool use
@@ -137,6 +136,8 @@ class ExtractionThread(QThread):
                 except Exception as e:
                     self.log.emit(f"Error processing {os.path.basename(file_path)}: {str(e)}")
                     continue
+                self.progress.emit(i + 1, total)
+
             self.finished.emit()
 
         except Exception as e:
