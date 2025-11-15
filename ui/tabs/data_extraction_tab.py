@@ -143,7 +143,7 @@ class DataExtractionTab(QWidget):
 
     def update_files_to_extract(self, folder):
         """Update the files to extract"""
-        supported_extensions = ['.txt', '.pdf', '.docx', '.jpg', '.jpeg', '.png']
+        supported_extensions = ['.txt', '.pdf', '.jpg', '.jpeg', '.png']
         files = []
         for filename in os.listdir(folder):
             full_path = Path(folder) / filename

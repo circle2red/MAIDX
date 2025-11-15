@@ -7,7 +7,7 @@ import json
 import os
 import re
 from core.llm_tools.tools_manager import ToolsManager
-from core.llm_client import LLMClient
+from core.llm_client import LLMClient, parse_code_fences
 from core.file_manager import FileManager
 from core.llm_prompt import system_prompt, user_prompt
 
@@ -19,20 +19,6 @@ class ExtractionThread(QThread):
     log = Signal(str)
     finished = Signal()
     error = Signal(str)
-
-    @staticmethod
-    def parse_code_fences(s):
-        # This regex looks for:
-        # 1. Three backticks (```) followed by an optional language identifier.
-        # 2. Any character (including newlines) non-greedily, until...
-        # 3. Three backticks (```) again.
-        regexp = r"```(.*?)\n(.*?)\n```"
-        matches = re.finditer(regexp, s, re.DOTALL)  # re.DOTALL makes . match newlines
-
-        parsed_fences = []
-        for match in matches:
-            parsed_fences.append(match.group(2))
-        return parsed_fences
 
     def __init__(self, model_config: Dict[str, Any],
                  schema_config: Dict[str, Any], method_config: Dict[str, Any],
@@ -130,7 +116,7 @@ class ExtractionThread(QThread):
                         resp = self.llm_client.send_llm_request()
                         last_resp = ""
                         result = []
-                        objs = self.parse_code_fences(resp)
+                        objs = parse_code_fences(resp)
                         for obj in objs:
                             if '%missing%' in obj:
                                 last_resp += f"```\n{obj}\n```\n"

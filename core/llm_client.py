@@ -1,10 +1,25 @@
 import base64
 import logging
+import re
 import httpx
 import json
 from typing import Literal, Union
-from core.llm_tools import python_tool, web_fetch_tool
 from core.llm_tools.tools_manager import ToolsManager
+
+
+def parse_code_fences(s):
+    # This regex looks for:
+    # 1. Three backticks (```) followed by an optional language identifier.
+    # 2. Any character (including newlines) non-greedily, until...
+    # 3. Three backticks (```) again.
+    regexp = r"```(.*?)\n(.*?)\n```"
+    matches = re.finditer(regexp, s, re.DOTALL)  # re.DOTALL makes . match newlines
+
+    parsed_fences = []
+    for match in matches:
+        parsed_fences.append(match.group(2))
+    return parsed_fences
+
 
 
 class LLMClient:

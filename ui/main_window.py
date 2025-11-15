@@ -12,7 +12,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("MAIDX - Multimodel AI Data Extraction")
-        self.setMinimumSize(900, 700)
+        self.setMinimumSize(900, 600)
 
         # Create central widget
         central_widget = QWidget()
@@ -38,6 +38,7 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.data_extraction_tab, "Data Extraction")
 
         # Connect tabs to share data
+        self.schema_setup_tab.set_model_tab(self.model_setup_tab)
         self.data_extraction_tab.set_model_tab(self.model_setup_tab)
         self.data_extraction_tab.set_schema_tab(self.schema_setup_tab)
         self.data_extraction_tab.set_method_tab(self.method_setup_tab)

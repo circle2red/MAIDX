@@ -2,7 +2,7 @@ import base64
 import json
 import os.path
 from pathlib import Path
-from typing import List, Literal
+from typing import List, Literal, Dict
 import fitz
 import pypdf
 from pypdf.errors import PdfReadError
@@ -92,7 +92,7 @@ def pdf_reader(pdf_file_path):
                         base64_encoded_image = base64.b64encode(image_bytes).decode('utf-8')
                         data_uri = f"data:{mime_type};base64,{base64_encoded_image}"
                         images.append(data_uri)
-                        print(f"Processing {img_ref.name}")
+                        # print(f"Processing {img_ref.name}")
                     except Exception as e:
                         logging.warning(f"Could not process image on page {page_num + 1} ({img_ref.name}): {e}")
                         continue  # Skip to the next image
@@ -108,18 +108,19 @@ def pdf_reader(pdf_file_path):
 
 
 class FileManager:
-    def __init__(self, file_list: List[str], output_path: str,
+    def __init__(self, file_list: List[str], output_path: str = None,
                  pdf_parse_mode="text", use_segment=False,
                  max_seg_text_len=0, max_seg_page_cnt=0, seg_overlap=0):
         """
         File manager for LLM
+        (Can operate without output path, but no output functions can be called)
         path_list: list of file paths
         pdf_parse_mode: decide how to parse PDF files. "text", "text_with_img", "page_as_img"
         """
         pdf_parse_mode: Literal["text", "text_with_img", "page_as_img"]
         self.path_list = file_list
         self.output_path = output_path
-        if not os.path.exists(self.output_path):
+        if output_path and not os.path.exists(self.output_path):
             os.makedirs(self.output_path, exist_ok=True)
         self.pdf_parse_mode = pdf_parse_mode
         self.use_segment = use_segment
@@ -154,7 +155,7 @@ class FileManager:
     def get_file_count(self):
         return len(self.files)
 
-    def get_segments(self, filename):
+    def get_segments(self, filename) -> Dict:
         return self.files[filename]['segments']
 
     @staticmethod
@@ -186,7 +187,6 @@ class FileManager:
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(json.dumps(log, ensure_ascii=False, indent=2))
 
-
     @staticmethod
     def segment_text(s, max_len, overlap):
         if max_len <= overlap:
@@ -199,6 +199,22 @@ class FileManager:
         return result
 
     @staticmethod
+    def merge_pages_into_one_segment(pages):
+        all_text = []
+        all_imgs = []
+        for p in pages:
+            if p['text']:
+                all_text.append(p['text'])
+            if p['img']:
+                all_imgs.extend(p['img'])
+        all_text = '\n\n'.join(all_text) if all_text else None
+        return {
+            "text": all_text,
+            "img": all_imgs
+        }
+
+
+    @staticmethod
     def segment_pages(page_list, max_len, overlap):
         if max_len <= overlap:
             raise ValueError("Segment max_len <= overlap")
@@ -209,18 +225,7 @@ class FileManager:
             cur_pos += max_len - overlap
         result = []
         for cid, pages in enumerate(segments):
-            all_text = []
-            all_imgs = []
-            for p in pages:
-                if p['text']:
-                    all_text.append(p['text'])
-                if p['img']:
-                    all_imgs.extend(p['img'])
-            all_text = '\n\n'.join(all_text) if all_text else None
-            result.append({
-                "text": all_text,
-                "img": all_imgs
-            })
+            result.append(FileManager.merge_pages_into_one_segment(pages))
         return result
 
     def load_files(self):
@@ -255,20 +260,28 @@ class FileManager:
                 elif self.pdf_parse_mode == "text_with_img":
                     ptxt, pimg = pdf_reader(file)
                     pages = [{"text": i, "img": j} for i, j in zip(ptxt, pimg)]
+                    if self.use_segment:
+                        segments = self.segment_pages(pages, self.max_seg_page_cnt, self.seg_overlap)
+                    else:
+                        segments = [self.merge_pages_into_one_segment(pages)]
                     self.files[file] = {
                         "type": "pdf",
                         "paged_text": ptxt,
                         "paged_img": pimg,
-                        "segments": self.segment_pages(pages, self.max_seg_page_cnt, self.seg_overlap),
+                        "segments": segments,
                         "mode": "text_with_img",
                     }
                 elif self.pdf_parse_mode == "page_as_img":
                     pimg = pdf_render_img(file)
-                    pages = [{"text": None, "img": j} for j in pimg]
+                    pages = [{"text": None, "img": [j]} for j in pimg]
+                    if self.use_segment:
+                        segments = self.segment_pages(pages, self.max_seg_page_cnt, self.seg_overlap)
+                    else:
+                        segments = [self.merge_pages_into_one_segment(pages)]
                     self.files[file] = {
                         "type": "pdf",
                         "pimg": pimg,
-                        "segments": self.segment_pages(pages, self.max_seg_page_cnt, self.seg_overlap),
+                        "segments": segments,
                         "mode": "page_as_img",
                     }
             if file.endswith("png") or file.endswith("jpg") or file.endswith("jpeg"):
@@ -276,7 +289,7 @@ class FileManager:
                 self.files[file] = {
                     "type": "img",
                     "img": img,
-                    "segments": [{"text": None, "img": img}]
+                    "segments": [{"text": None, "img": [img]}]
                 }
             if file not in self.files:
                 self.files[file] = {

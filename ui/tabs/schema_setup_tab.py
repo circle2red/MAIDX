@@ -1,12 +1,17 @@
 """
 Schema Setup Tab - Define data extraction schema
 """
+from PySide6.QtGui import QTextOption
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QGroupBox,
                                QLabel, QComboBox, QLineEdit, QPushButton,
                                QTextEdit, QTreeWidget, QTreeWidgetItem,
-                               QFormLayout, QMessageBox, QHeaderView)
+                               QFormLayout, QMessageBox, QHeaderView, QFileDialog)
 from PySide6.QtCore import Signal, Qt
 import json
+
+from core.file_manager import FileManager
+from core.llm_client import LLMClient, parse_code_fences
+from core.llm_prompt import gen_schema_system_prompt
 
 
 class SchemaSetupTab(QWidget):
@@ -17,9 +22,58 @@ class SchemaSetupTab(QWidget):
     def __init__(self):
         super().__init__()
         self.init_ui()
+        self.model_tab = None
+
+    def set_model_tab(self, model_tab):
+        """Set reference to model setup tab"""
+        self.model_tab = model_tab
 
     def init_ui(self):
-        layout = QVBoxLayout(self)
+        layout = QHBoxLayout(self)
+        auto_schema_layout = QVBoxLayout()
+
+        # LLM auto generate schema
+        auto_group = QGroupBox("Automatic Schema Generation")
+        auto_layout = QVBoxLayout()
+
+        auto_info_label = QLabel(
+            "For automatic schema generation, provide your research question "
+            "and a sample file of your research."
+        )
+        auto_info_label.setWordWrap(True)
+        auto_info_label.setStyleSheet("color: #666; font-style: italic;")
+        auto_layout.addWidget(auto_info_label)
+
+        self.research_question_input = QTextEdit()
+        self.research_question_input.setPlaceholderText("Input your research question: I wish to extract...")
+        # self.research_question_input.setWordWrapMode(QTextOption.WrapMode.WordWrap)
+        self.research_question_input.setMaximumHeight(100)
+        auto_layout.addWidget(self.research_question_input)
+        auto_group.setLayout(auto_layout)
+        auto_schema_layout.addWidget(auto_group)
+
+        file_layout = QHBoxLayout()
+        file_layout.addWidget(QLabel("Sample file:"))
+        self.file_input = QLineEdit()
+        self.file_input.setPlaceholderText("Select a sample file of your data to be extracted...")
+        self.file_input.setReadOnly(True)
+        file_layout.addWidget(self.file_input)
+
+        self.browse_btn = QPushButton("Browse...")
+        self.browse_btn.clicked.connect(self.browse_file)
+        file_layout.addWidget(self.browse_btn)
+        auto_layout.addLayout(file_layout)
+
+        self.generate_btn = QPushButton("Auto Generate")
+        self.generate_btn.clicked.connect(self.generate_schema_auto)
+        auto_layout.addWidget(self.generate_btn)
+
+        auto_layout.addStretch(1)
+
+        #####################
+
+        # Manual set schema
+        manual_schema_layout = QVBoxLayout()
 
         # JSON Schema Title
         title_layout = QHBoxLayout()
@@ -27,7 +81,7 @@ class SchemaSetupTab(QWidget):
         self.json_title_input = QLineEdit()
         self.json_title_input.setPlaceholderText("e.g., Invoice Details")
         title_layout.addWidget(self.json_title_input)
-        layout.addLayout(title_layout)
+        manual_schema_layout.addLayout(title_layout)
 
         # Field Definition Group
         fields_group = QGroupBox("Field Definitions")
@@ -101,7 +155,7 @@ class SchemaSetupTab(QWidget):
         fields_layout.addLayout(row3)
 
         fields_group.setLayout(fields_layout)
-        layout.addWidget(fields_group)
+        manual_schema_layout.addWidget(fields_group)
 
         # Raw Schema Input/Output
         raw_group = QGroupBox("Full Schema Definition")
@@ -127,12 +181,12 @@ class SchemaSetupTab(QWidget):
         self.load_example_btn.clicked.connect(self.load_example_schema)
         btn_layout.addWidget(self.load_example_btn)
 
-        self.load_json_btn = QPushButton("Load Current JSON To Editor")
-        self.load_json_btn.clicked.connect(self.load_json)
+        self.load_json_btn = QPushButton("Load JSON To Tree Editor")
+        self.load_json_btn.clicked.connect(self.load_json_to_tree)
         btn_layout.addWidget(self.load_json_btn)
 
-        self.generate_btn = QPushButton("Load Editor to JSON")
-        self.generate_btn.clicked.connect(self.generate_schema)
+        self.generate_btn = QPushButton("Load Tree Editor to JSON")
+        self.generate_btn.clicked.connect(self.load_tree_to_json)
         btn_layout.addWidget(self.generate_btn)
 
         self.validate_btn = QPushButton("Validate JSON Schema")
@@ -143,16 +197,20 @@ class SchemaSetupTab(QWidget):
 
         raw_layout.addLayout(btn_layout)
         raw_group.setLayout(raw_layout)
-        layout.addWidget(raw_group)
+        manual_schema_layout.addWidget(raw_group)
 
-        layout.addStretch()
+        manual_schema_layout.addStretch()
+
+        layout.addLayout(auto_schema_layout)
+        layout.addLayout(manual_schema_layout)
+
 
     def get_placeholder_text(self):
         """Get placeholder text for schema editor"""
         return """Generate the schema or input your schema manually."""
 
 
-    def load_json(self):
+    def load_json_to_tree(self):
         try:
             schema = json.loads(self.schema_text.toPlainText())
             self.json_title_input.setText(schema.get("title", "Data Schema").strip())
@@ -221,7 +279,7 @@ class SchemaSetupTab(QWidget):
         }
 
         self.schema_text.setPlainText(json.dumps(example, indent=2))
-        self.load_json()
+        self.load_json_to_tree()
 
     def populate_tree_from_schema(self, properties, required, parent_item=None):
         """Populate tree widget from JSON Schema properties"""
@@ -268,7 +326,7 @@ class SchemaSetupTab(QWidget):
                     child_item.setText(0, f"item")
                     child_item.setText(1, item_type_str)
                     child_item.setText(2, "")  # Not directly "required" in the same sense
-                    child_item.setText(3, items_def["description"])
+                    child_item.setText(3, items_def.get("description", ""))
                     item.addChild(child_item)
 
     def validate_schema(self):
@@ -530,7 +588,7 @@ class SchemaSetupTab(QWidget):
 
         return property_def
 
-    def generate_schema(self):
+    def load_tree_to_json(self):
         """Generate schema text from fields tree"""
         if self.fields_tree.topLevelItemCount() == 0:
             QMessageBox.warning(self, "No Fields", "Please add fields first.")
@@ -584,3 +642,68 @@ class SchemaSetupTab(QWidget):
                 config["json_schema"] = None
 
         return config
+
+
+    def browse_file(self):
+        """Browse for input folder"""
+        file_filter = (
+            "Supported Files (*.txt *.pdf *.jpg *.jpeg *.png);;"
+        )
+        file_path, _ = QFileDialog.getOpenFileName(self, caption="Select Sample DataFile", filter=file_filter)
+        if file_path:
+            self.file_input.setText(file_path)
+
+    def generate_schema_auto(self):
+        model_config = self.model_tab.get_config()
+        file_path = self.file_input.text()
+
+        try:
+            llm_client = LLMClient(
+                endpoint=model_config['endpoint'],
+                model_name=model_config['model'],
+                headers=model_config['headers'],
+                timeout=model_config['timeout'],
+            )
+
+            file_manager = FileManager(
+                file_list=[file_path],
+                use_segment=False,
+            )
+
+            file_seg = file_manager.get_segments(file_path)[0]
+            if 'text' in file_seg and file_seg['text']:
+                sample_text = file_seg['text']
+            else:
+                sample_text = ""
+
+            llm_client.add_text_message(
+                "system",
+                gen_schema_system_prompt()
+            )
+
+            llm_client.add_text_message(
+                "user",
+                f"Research question: {self.research_question_input.toPlainText()}\n\n"
+                f"Sample File: {sample_text}"
+            )
+
+            if 'img' in file_seg:
+                for i in file_seg['img']:
+                    llm_client.add_image_message(
+                        role="user",
+                        img_b64=i
+                    )
+
+            llm_resp = llm_client.send_llm_request(return_full=False)
+            parsed = parse_code_fences(llm_resp)
+            if parsed:
+                self.schema_text.setPlainText(parsed[0])
+                QMessageBox.information(self, "Complete", f"Automatic generation of schema complete, loading tree...")
+                self.load_json_to_tree()
+            else:
+                print(f"Cannot parse {llm_resp}")
+                QMessageBox.warning(self, "Failed", f"Can't parse the LLM result, please try again.")
+
+        except Exception as e:
+            QMessageBox.warning(self, "Failed", f"Error loading LLM, check LLM configuration. \nError: {e}")
+
