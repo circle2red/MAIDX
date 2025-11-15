@@ -17,24 +17,24 @@ class ModelSetupTab(QWidget):
 
     # Preset configurations
     PRESETS = {
+        "Grok": {
+            "endpoint": "https://api.x.ai/v1/chat/completions",
+            "model": "grok-4-fast",
+            "headers": {"Authorization": "Bearer YOUR_API_KEY", "Content-Type": "application/json"}
+        },
         "GPT-4": {
             "endpoint": "https://api.openai.com/v1/chat/completions",
             "model": "gpt-4-turbo-preview",
             "headers": {"Authorization": "Bearer YOUR_API_KEY", "Content-Type": "application/json"}
         },
-        "GPT-3.5": {
-            "endpoint": "https://api.openai.com/v1/chat/completions",
-            "model": "gpt-3.5-turbo",
+        "Alibaba Qwen QVQ": {
+            "endpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+            "model": "qvq-max",
             "headers": {"Authorization": "Bearer YOUR_API_KEY", "Content-Type": "application/json"}
         },
-        "DeepSeek": {
+        "DeepSeek (No Image Capability)": {
             "endpoint": "https://api.deepseek.com/v1/chat/completions",
             "model": "deepseek-chat",
-            "headers": {"Authorization": "Bearer YOUR_API_KEY", "Content-Type": "application/json"}
-        },
-        "Grok": {
-            "endpoint": "https://api.x.ai/v1/chat/completions",
-            "model": "grok-4-fast",
             "headers": {"Authorization": "Bearer YOUR_API_KEY", "Content-Type": "application/json"}
         },
         "Custom": {
@@ -187,6 +187,13 @@ class ModelSetupTab(QWidget):
                                     f"Successful: Response with Hello World Request: {resp}")
         except Exception as e:
             QMessageBox.warning(self, "Test Connection", f"Failure: {e}")
+
+    def load_model_from_dict(self, model_param: dict):
+        self.preset_combo.setCurrentText("Custom")
+        self.endpoint_input.setText(model_param.get("endpoint", ""))
+        self.model_input.setText(model_param.get("model", ""))
+        self.api_key_input.setText(model_param.get("api_key", ""))
+        self.headers_input.setText(model_param.get("headers", ""))
 
     def get_config(self):
         """Get the current model configuration"""
