@@ -36,7 +36,7 @@ def run_python(code: str) -> str:
     """
 
     SAFE_MODULES = {
-        "datetime", "math", "json", "re", "decimal", "copy"
+        "datetime", "math", "json", "re", "decimal", "copy", "time"
     }
 
     FORBIDDEN_NAMES = {
@@ -68,10 +68,11 @@ def run_python(code: str) -> str:
         return False
 
     if has_dangerous_imports(code, SAFE_MODULES):
-        return "Error: Restricted module import detected. Dangerous modules like 'os', 'sys', 'subprocess', etc., are not allowed."
+        return "Error: Restricted module import detected. " \
+               f"Only safe modules: {SAFE_MODULES} can be imported."
     for f in FORBIDDEN_NAMES:
         if f in code:
-            return f"Error: Dangerous operation [{f}] Detected.."
+            return f"Error: Dangerous operation keyword [{f}] Detected.."
     # Create a temporary file to store the Python code
     # We use delete=False then explicitly delete in finally
     temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=".py", encoding='gbk')
