@@ -1,6 +1,8 @@
 """
 Data Extraction Tab - Import files and extract data
 """
+from pathlib import Path
+
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QGroupBox,
                                QLabel, QPushButton, QLineEdit, QRadioButton,
                                QProgressBar, QTextEdit, QFileDialog, QMessageBox,
@@ -61,23 +63,6 @@ class DataExtractionTab(QWidget):
 
         import_group.setLayout(import_layout)
         layout.addWidget(import_group)
-
-        # Extraction Mode Group
-        mode_group = QGroupBox("Extraction Mode")
-        mode_layout = QVBoxLayout()
-
-        self.mode_group = QButtonGroup(self)
-        self.single_data_radio = QRadioButton("One piece of data per file")
-        self.single_data_radio.setChecked(True)
-        self.mode_group.addButton(self.single_data_radio)
-        mode_layout.addWidget(self.single_data_radio)
-
-        self.multiple_data_radio = QRadioButton("Multiple pieces of data per file")
-        self.mode_group.addButton(self.multiple_data_radio)
-        mode_layout.addWidget(self.multiple_data_radio)
-
-        mode_group.setLayout(mode_layout)
-        layout.addWidget(mode_group)
 
         # Output Settings Group
         output_group = QGroupBox("Output Settings")
@@ -154,17 +139,18 @@ class DataExtractionTab(QWidget):
         folder = QFileDialog.getExistingDirectory(self, "Select Input Folder")
         if folder:
             self.folder_input.setText(folder)
-            self.update_file_count(folder)
+            self.update_files_to_extract(folder)
 
-    def update_file_count(self, folder):
-        """Update the file count label"""
+    def update_files_to_extract(self, folder):
+        """Update the files to extract"""
         supported_extensions = ['.txt', '.pdf', '.docx', '.jpg', '.jpeg', '.png']
         files = []
-        for root, _, filenames in os.walk(folder):
-            for filename in filenames:
-                ext = os.path.splitext(filename)[1].lower()
+        for filename in os.listdir(folder):
+            full_path = Path(folder) / filename
+            if full_path.is_file():
+                ext = os.path.splitext(full_path)[1].lower()
                 if ext in supported_extensions:
-                    files.append(os.path.join(root, filename))
+                    files.append(str(full_path.absolute()))
 
         self.file_count_label.setText(f"Found {len(files)} supported files")
         self.files_to_process = files
@@ -181,7 +167,6 @@ class DataExtractionTab(QWidget):
             "output_folder": self.output_folder_input.text(),  # str folder
             "log_raw": self.log_raw.isChecked(),  # True/False
         }
-        print(config)
         return config
 
     def start_extraction(self):
@@ -229,12 +214,10 @@ class DataExtractionTab(QWidget):
         self.add_log("Starting extraction process...")
 
         self.extraction_thread = ExtractionThread(
-            files=self.files_to_process,
-            model_config=model_config,
-            schema_config=schema_config,
-            output_file=self.output_folder_input.text(),
-            multiple_per_file=self.multiple_data_radio.isChecked(),
-            log_raw_output=self.log_raw.isChecked(),
+            model_config=self.model_tab.get_config(),
+            schema_config=self.schema_tab.get_config(),
+            method_config=self.method_tab.get_config(),
+            extraction_config=self.get_config(),
         )
 
         self.extraction_thread.progress.connect(self.update_progress)

@@ -47,6 +47,10 @@ class LLMClient:
         self.timeout = timeout
         self.log_llm_call = log_llm_call
 
+    def clear_history(self):
+        self.messages = []
+        self.tools_manager.reset_limit()
+
     def add_text_message(self, role: Literal["user", "assistant", "system"], msg: str):
         """Add a pure text message to LLM history"""
         self.messages.append({

@@ -2,7 +2,8 @@
 Method Setup Tab - Configure extraction methods and options
 """
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QGroupBox,
-                               QLabel, QCheckBox, QPushButton, QMessageBox, QButtonGroup, QRadioButton, QLineEdit)
+                               QLabel, QCheckBox, QPushButton, QMessageBox, QButtonGroup, QRadioButton, QLineEdit,
+                               QTextEdit)
 from PySide6.QtCore import Signal
 
 
@@ -29,11 +30,11 @@ class MethodSetupTab(QWidget):
         self.pdf_mode_group.addButton(self.pdf_pure_text_extraction)
         pdf_layout.addWidget(self.pdf_pure_text_extraction)
 
-        self.pdf_text_with_img = QRadioButton("Text Extraction + Image")
+        self.pdf_text_with_img = QRadioButton("Text Extraction + Image (Forced Segmentation by Page, *)")
         self.pdf_mode_group.addButton(self.pdf_text_with_img)
         pdf_layout.addWidget(self.pdf_text_with_img)
 
-        self.pdf_page_as_img = QRadioButton("Page as Image")
+        self.pdf_page_as_img = QRadioButton("Page as Image (Forced Segmentation by Page, *)")
         self.pdf_mode_group.addButton(self.pdf_page_as_img)
         pdf_layout.addWidget(self.pdf_page_as_img)
 
@@ -51,18 +52,18 @@ class MethodSetupTab(QWidget):
         row = QHBoxLayout()
         self.seg_max_text_len = QLineEdit()
         self.seg_max_text_len.setText("30000")
-        row.addWidget(QLabel("Max text length: "))
+        row.addWidget(QLabel("Max text length per segment: "))
         row.addWidget(self.seg_max_text_len)
 
-        self.seg_max_img = QLineEdit()
-        self.seg_max_img.setText("1")
-        row.addWidget(QLabel("Max image count: "))
-        row.addWidget(self.seg_max_img)
+        self.seg_max_pages = QLineEdit()
+        self.seg_max_pages.setText("1")
+        row.addWidget(QLabel("Max pages count (*): "))
+        row.addWidget(self.seg_max_pages)
 
-        self.seg_text_overlap = QLineEdit()
-        self.seg_text_overlap.setText("1000")
-        row.addWidget(QLabel("Text overlapping length: "))
-        row.addWidget(self.seg_text_overlap)
+        self.seg_overlap = QLineEdit()
+        self.seg_overlap.setText("1000")
+        row.addWidget(QLabel("Text / Page(*) overlapping length: "))
+        row.addWidget(self.seg_overlap)
 
         segmentation_layout.addLayout(row)
 
@@ -107,6 +108,17 @@ class MethodSetupTab(QWidget):
         # self.tool_web_search.setChecked(True)
         # tool_layout.addWidget(self.tool_web_search)
 
+        col = QVBoxLayout()
+        self.tools_prompt_input = QTextEdit()
+        self.tools_prompt_input.setText("If you need to perform calculations or conversions, "
+                                        "use the execute_python tool. \n"
+                                        "If you want to query the latest news, "
+                                        "query https://feeds.bbci.co.uk/news/world/rss.xml using "
+                                        "the web_fetch tool.")
+        col.addWidget(QLabel("Tools prompt:"))
+        col.addWidget(self.tools_prompt_input)
+        tool_layout.addLayout(col)
+
         tool_group.setLayout(tool_layout)
         layout.addWidget(tool_group)
 
@@ -130,26 +142,32 @@ class MethodSetupTab(QWidget):
 
         use_segmentation = self.enable_seg.isChecked()
         max_text_length = as_int(self.seg_max_text_len.text(), 30000)
-        max_img_count = as_int(self.seg_max_img.text(), 1)
-        overlapping_text_length = as_int(self.seg_text_overlap, 1000)
+        max_pages_count = as_int(self.seg_max_pages.text(), 1)
+        overlapping_length = as_int(self.seg_overlap.text(), 1000)
         multi_obj = self.enable_multi.isChecked()
 
-        python_tool = self.tool_python.isChecked()
-        max_python_call = as_int(self.tool_python_max_call.text(), 10)
-        web_fetch_tool = self.tool_web_fetch.isChecked()
-        max_web_fetch_call = as_int(self.tool_web_fetch_max_call.text(), 10)
+        if self.tool_python.isChecked():
+            max_python_call = as_int(self.tool_python_max_call.text(), 10)
+        else:
+            max_python_call = 0
+
+        if self.tool_web_fetch.isChecked():
+            max_web_fetch_call = as_int(self.tool_web_fetch_max_call.text(), 10)
+        else:
+            max_web_fetch_call = 0
+
+        tool_prompt = self.tools_prompt_input.toPlainText()
 
         config = {
             "pdf_mode": pdf_mode,
             "use_segmentation": use_segmentation,
             "max_text_length": max_text_length,
-            "max_img_count": max_img_count,
-            "overlapping_text_length": overlapping_text_length,
+            "max_pages_count": max_pages_count,
+            "overlapping_length": overlapping_length,
             "multi_obj": multi_obj,
-            "python_tool": python_tool,
             "max_python_call": max_python_call,
-            "web_fetch_tool": web_fetch_tool,
             "max_web_fetch_call": max_web_fetch_call,
+            "tool_prompt": tool_prompt,
         }
 
         return config

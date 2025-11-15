@@ -13,25 +13,25 @@ class ToolsManager:
         Set up a ToolsManager. Set both limits to 0 to disallow any tools.
         """
         self.tools = {}
-        # Don't let the LLM see the tool if it is not allowed in the first place.
-        if python_limit:
-            self.tools[python_tool.tool_desc['function']['name']] = {
-                'desc': python_tool.tool_desc,
-                'usage_limit': python_limit,
-                'func': python_tool.run_python
-            }
-        if web_fetch_limit:
-            self.tools[web_fetch_tool.tool_desc['function']['name']] = {
-                'desc': web_fetch_tool.tool_desc,
-                'usage_limit': web_fetch_limit,
-                'func': web_fetch_tool.web_fetch
-            }
+        self.tools[python_tool.tool_desc['function']['name']] = {
+            'desc': python_tool.tool_desc,
+            'usage_limit': python_limit,
+            'func': python_tool.run_python,
+            'init_limit': python_limit,
+        }
+        self.tools[web_fetch_tool.tool_desc['function']['name']] = {
+            'desc': web_fetch_tool.tool_desc,
+            'usage_limit': web_fetch_limit,
+            'func': web_fetch_tool.web_fetch,
+            'init_limit': web_fetch_limit,
+        }
         """
             format: {
                 "tool_name": {
                     "desc": tool_desc,
-                    "usage_limit": 0,
-                    "func": callable
+                    "usage_limit": 1,
+                    "func": callable,
+                    "init_limit": 3,
                 }
             }
         """
@@ -43,6 +43,10 @@ class ToolsManager:
                 return True
         return False
 
+    def reset_limit(self):
+        for tool_name, tool in self.tools.items():
+            tool['usage_limit'] = tool['init_limit']
+
     def gen_tools_list_for_llm(self, add_limits_prompt=True) -> List:
         """
         Generate LLM tool list
@@ -50,6 +54,9 @@ class ToolsManager:
         """
         res = []
         for tool_name, tool in self.tools.items():
+            # Don't let the LLM see the tool if it is not allowed in the first place.
+            if tool['init_limit'] == 0:
+                continue
             if tool['usage_limit'] > 0:
                 desc = tool['desc']
                 if add_limits_prompt:

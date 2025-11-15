@@ -6,7 +6,7 @@
       "type": "string",
       "description": "The title of the news (unchanged)"
     },
-	"category": {
+    "category": {
       "type": "string",
       "description": "Choose from: \"Technology\", \"Entertainment\" and \"Health\""
     },
@@ -18,9 +18,9 @@
         "description": "each reporter's name"
       }
     },
-    "date": {
+    "time": {
       "type": "number",
-      "description": "the date of news in YYYYMMDD format (e.g. 20140215)"
+      "description": "The UNIX timestamp of the news. Suppose 00:00 GMT if not specified time."
     },
     "summary": {
       "type": "string",
@@ -34,7 +34,7 @@
   "required": [
     "title",
     "reporter",
-    "date",
+    "time",
     "summary",
     "emotion"
   ]
