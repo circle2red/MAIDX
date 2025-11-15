@@ -1,21 +1,30 @@
-# MAIDX - Multimodel AI based Data Extraction
+# MAIDX - Multimodal AI based Data Extraction
 
 MAIDX is a powerful desktop application for extracting structured data from documents using AI language models. It supports multiple file formats and allows you to define custom extraction schemas.
 
+
+
 ## Features
 
-- **Multi-Model Support**: Works with GPT, DeepSeek, Grok, and custom API endpoints
-- **Multiple File Formats**: Process TXT
-    - Pending: PDF, DOCX, and image files (JPG, PNG)
-
+- **Multi-Model Support**: Works with GPT, Qwen, Grok, Deepseek and custom API endpoints
+  - Auto-load model settings from environment variables
+- **Multiple File Formats**: Process TXT, PDF, JPG and PNG
+  - Pending: DOCX
 - **Flexible Schema Definition**: Define extraction schemas in JSON format
-    - Pending: SQLite 
-
-- **Tool Use**: LLMs can execute safe Python code for calculations and transformations
-    - Pending: Safer options 
-
+  - Supports LLM-generated schema based on research questions and a sample file
+  - Pending: SQLite
+- **Tool Use**: LLMs can execute tools for better calculation or understanding
+  - Sandboxed Python code for calculations and transformations
+      - Pending: Safer options
+  - Web fetch tool to allow LLM search the web
+      - Pending: Load some APIs
+  - Pending: DB related tools (RAG)
 - **Batch Processing**: Process entire folders of documents automatically
-- **Progress Tracking**: Real-time progress bar and detailed logging
+- **Progress Tracking**: Progress bar and detailed logging
+    - Pending: Pause & Resume; DB Cache of LLM streams
+
+
+
 
 ## Installation
 
@@ -30,40 +39,45 @@ cd maidx
 pip install -r requirements.txt
 ```
 
-Pending: For OCR support (image parsing), you also need to install Tesseract OCR:
 
-- **Windows**: Download from https://github.com/UB-Mannheim/tesseract/wiki
-- **macOS**: `brew install tesseract`
-- **Linux**: `sudo apt-get install tesseract-ocr`
 
 ## Usage
 
 1. Run the application:
-```bash
-python main.py
-```
-
+    ```bash
+    python main.py
+    ```
 2. **Model Setup Tab**:
+   
    - Choose a preset (GPT, DeepSeek, Grok) or configure a custom endpoint
    - Enter your API key
    - Configure model parameters (temperature, max tokens, etc.)
-   - Enable/disable the Python execution tool
 3. **Schema Setup Tab**:
+   
    - Define fields manually or write the schema directly
    - Add descriptions for each field to guide the LLM
-4. **Data Extraction Tab**:
+   - Or define a research question and use LLM to generate the schema
+4. **Method Setup Tab**
+   
+   - Define how you would like to load the data and call the LLM
+   - Choose extraction mode (one or multiple records per file)
+5. **Data Extraction Tab**:
+   
    - Select input folder containing your documents
-       - Pending: Choose extraction mode (one or multiple records per file)
    - Specify output path
+   - Check if you would like to see the log
    - Click "Start Extraction"
 
-## Example Use Case
 
-Extract information from news articles:
 
-1. **Model Setup**: Choose DeepSeek and enter your API key
-2. **Schema Setup**: Define a news schema with fields like title, person, timestamp, emotion
-3. **Data Extraction**: Select folder with .txt news files, choose output file, and start
+## Example Use Cases
+
+### Example 1 (Enclosed): Extract information from news articles (text)
+
+1. **Model Setup**: Choose DeepSeek and enter your API key, or set environment variables or `.env` file for auto-loading.
+2. **Schema Setup**: Define a news schema with fields like title, person, timestamp, emotion.
+3. **Method Setup**: Configure extraction mode based on document structure.
+4. **Data Extraction**: Select the `sample/txt-news-unstructured` folder, choose output file, and start.
 
 The LLM will:
 - Read each news article
@@ -71,11 +85,25 @@ The LLM will:
 - Use the Python tool for timestamp conversions
 - Save results to SQLite database or JSON file
 
+
+
+### Example 2: Process Images, or mixed documents (PDF, JPGs)
+
+- The functions are finished but currently pending an example.
+
+
+
 ## Architecture
 
 ```
 maidx/
 ├── main.py                 # Application entry point
+├── test.py                 # Test utilities for image processing
+├── sample_call.json        # Sample API call data
+├── sample/                 # Sample datasets
+│   ├── txt-news-structured/       # Structured news text samples
+│   ├── txt-news-unstructured/     # Unstructured news text samples
+│   └── txt-news-task.txt          # Task definition for news samples
 ├── ui/
 │   ├── main_window.py      # Main window with tabs
 │   └── tabs/
@@ -90,34 +118,45 @@ maidx/
 └── requirements.txt
 ```
 
+
+
 ## Security
 
 The Python execution tool runs in a restricted environment:
 - Only safe built-in functions allowed
-- Limited to datetime, json, math, and re modules
+- Limited to datetime, time, json, math, and re modules
 - File operations blocked
 - No network access
 
+Yet there is no guarantee that it 100% safe. 
+
+The network fetch tool can GET and POST to any website. 
+
+
+
 ## API Compatibility
 
-MAIDX works with any OpenAI-compatible API endpoint. The following services are tested:
-- OpenAI GPT models
+MAIDX works with any OpenAI-compatible API endpoint, preferably with image support.
+The following services are tested and supported:
+
+- GPT (OpenAI API)
 - DeepSeek
+- Qwen
 - Grok (X.AI)
 - Custom endpoints following the OpenAI API format
 
+Environment variables can be used to auto-load model settings and API keys for quick setup.
+
+
+
 ## Requirements
 
-- Python 3.8+
-- PySide6 (Qt GUI framework)
-- httpx (HTTP client)
-- PyPDF (PDF parsing)
-- python-docx (DOCX parsing)
-- Pillow + pytesseract (Image OCR)
+- Windows 10 (Other OSes supporting pyqt may run, but untested)
+- Python 3.11 (Other version may be possible, but untested)
+- Packages in `requirements.txt`
+- (pending) python-docx (DOCX parsing)
 
-## License
 
-WTFPL
 
 ## Contributing
 
