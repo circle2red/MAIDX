@@ -127,11 +127,6 @@ class DataExtractionTab(QWidget):
 
         layout.addLayout(btn_layout)
 
-        # DEBUG todo
-        self.test = QPushButton("test")
-        self.test.clicked.connect(self.get_config)
-        btn_layout.addWidget(self.test)
-
         layout.addStretch()
 
     def browse_folder(self):
