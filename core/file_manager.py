@@ -230,7 +230,8 @@ class FileManager:
 
     def load_files(self):
         for file in self.path_list:
-            if file.endswith(".txt"):
+            lower_file = file.lower()
+            if lower_file.endswith(".txt"):
                 text = read_txt(file)
                 if self.use_segment:
                     segments = self.segment_text(text, self.max_seg_text_len, self.seg_overlap)
@@ -242,7 +243,7 @@ class FileManager:
                     "segments": [{"text": i, "img": []} for i in segments],
                 }
 
-            if file.endswith(".pdf"):
+            if lower_file.endswith(".pdf"):
                 if self.pdf_parse_mode == "text":
                     ptxt, pimg = pdf_reader(file)
                     text = "\n\n".join(ptxt)
@@ -284,7 +285,7 @@ class FileManager:
                         "segments": segments,
                         "mode": "page_as_img",
                     }
-            if file.endswith("png") or file.endswith("jpg") or file.endswith("jpeg"):
+            if lower_file.endswith("png") or file.endswith("jpg") or file.endswith("jpeg"):
                 img = read_img(file)
                 self.files[file] = {
                     "type": "img",
