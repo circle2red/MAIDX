@@ -127,6 +127,19 @@ class MethodSetupTab(QWidget):
 
         tool_layout.addLayout(row)
 
+        # Think tool
+        row = QHBoxLayout()
+        self.tool_think = QCheckBox("Internal Think Tool")
+        self.tool_think.setChecked(True)
+        row.addWidget(self.tool_think)
+
+        self.tool_think_max_call = QLineEdit()
+        self.tool_think_max_call.setText("10")
+        row.addWidget(QLabel("Max internal thoughts per file: "))
+        row.addWidget(self.tool_think_max_call)
+
+        tool_layout.addLayout(row)
+
         # self.tool_web_search = QCheckBox("Web Search Tool")
         # self.tool_web_search.setChecked(True)
         # tool_layout.addWidget(self.tool_web_search)
@@ -137,7 +150,8 @@ class MethodSetupTab(QWidget):
                                         "use the execute_python tool. \n"
                                         "If you want to query the latest news, "
                                         "query https://feeds.bbci.co.uk/news/world/rss.xml using "
-                                        "the web_fetch tool.")
+                                        "the web_fetch tool.\n"
+                                        "Think before you answer.\n")
         col.addWidget(QLabel("Tools prompt:"))
         col.addWidget(self.tools_prompt_input)
         tool_layout.addLayout(col)

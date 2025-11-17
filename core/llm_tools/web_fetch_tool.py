@@ -5,7 +5,7 @@ import httpx
 tool_desc = {
     "type": "function",
     "function": {
-        "name": "web_fetch",
+        "name": "web_fetch_tool",
         "description": "Use this to fetch the Internet resources, preferably APIs. \n"
                        "You should specify the URL, the method (GET/POST), "
                        "and optionally the body of POST request (JSON). "

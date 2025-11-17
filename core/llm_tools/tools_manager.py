@@ -2,13 +2,13 @@ import copy
 import json
 from typing import List
 
-from core.llm_tools import python_tool, web_fetch_tool
+from core.llm_tools import python_tool, web_fetch_tool, think_tool
 
 
 class ToolsManager:
     """Manager for LLM tools"""
 
-    def __init__(self, python_limit=5, web_fetch_limit=5):
+    def __init__(self, python_limit=5, web_fetch_limit=5, think_limit=5):
         """
         Set up a ToolsManager. Set both limits to 0 to disallow any tools.
         """
@@ -24,6 +24,12 @@ class ToolsManager:
             'usage_limit': web_fetch_limit,
             'func': web_fetch_tool.web_fetch,
             'init_limit': web_fetch_limit,
+        }
+        self.tools[think_tool.tool_desc['function']['name']] = {
+            'desc': think_tool.tool_desc,
+            'usage_limit': think_limit,
+            'func': think_tool.think,
+            'init_limit': think_limit,
         }
         """
             format: {
