@@ -65,7 +65,7 @@ def pdf_render_img(pdf_file_path, dpi: int = 300, output_format: Literal['jpg', 
         return []
 
 
-def pdf_reader(pdf_file_path, ignore_image=False):
+def pdf_reader(pdf_file_path):
     """
     Reads a PDF file, extracts text content page by page, and converts embedded images
     into base64 encoded data URIs.
@@ -85,20 +85,19 @@ def pdf_reader(pdf_file_path, ignore_image=False):
                 else:
                     page_texts.append("")
 
-                if not ignore_image:
-                    for img_ref in page.images:
-                        try:
-                            image_bytes = img_ref.data
-                            mime_type = img_uri.convert_ext_to_mime(img_ref.name)
-                            base64_encoded_image = base64.b64encode(image_bytes).decode('utf-8')
-                            data_uri = f"data:{mime_type};base64,{base64_encoded_image}"
-                            images.append(data_uri)
-                            # print(f"Processing {img_ref.name}")
-                        except Exception as e:
-                            logging.warning(f"Could not process image on page {page_num + 1} ({img_ref.name}): {e}")
-                            continue  # Skip to the next image
-                page_images.append(images)
+                for img_ref in page.images:
+                    try:
+                        image_bytes = img_ref.data
+                        mime_type = img_uri.convert_ext_to_mime(img_ref.name)
+                        base64_encoded_image = base64.b64encode(image_bytes).decode('utf-8')
+                        data_uri = f"data:{mime_type};base64,{base64_encoded_image}"
+                        images.append(data_uri)
+                        # print(f"Processing {img_ref.name}")
+                    except Exception as e:
+                        logging.warning(f"Could not process image on page {page_num + 1} ({img_ref.name}): {e}")
+                        continue  # Skip to the next image
 
+                page_images.append(images)
         return page_texts, page_images
     except FileNotFoundError:
         logging.warning(f"File {pdf_file_path} not found")
@@ -246,7 +245,7 @@ class FileManager:
 
             if lower_file.endswith(".pdf"):
                 if self.pdf_parse_mode == "text":
-                    ptxt, pimg = pdf_reader(file, ignore_image=True)
+                    ptxt, pimg = pdf_reader(file)
                     text = "\n\n".join(ptxt)
                     if self.use_segment:
                         segments = self.segment_text(text, self.max_seg_text_len, self.seg_overlap)
