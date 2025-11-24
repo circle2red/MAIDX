@@ -104,19 +104,14 @@ class SchemaValidationToolFactory:
             "type": "function",
             "function": {
                 "name": TOOL_NAME,
-                "description": f"""
-Validate JSON data against the predefined schema for '{schema_title}'.
-This tool ensures that extracted data conforms to the required structure.
-
-Only provide the JSON data to validate. The schema is already defined in the system.
-You'll receive validation results with any errors found.
-
-Common validation issues include:
-- Missing required fields
-- Incorrect data types (e.g., string instead of number)
-- Values outside allowed ranges or patterns
-- Invalid formats for dates, emails, etc.
-""",
+                "description": f"Validate JSON data against the predefined schema for '{schema_title}'.\n"
+                               "This tool ensures that extracted data conforms to the required structure.\n\n"
+                               "Only provide the JSON data to validate. The schema is already defined in the system.\n"
+                               "You'll receive validation results with any errors found.\n\n"
+                               "Common validation issues include:\n"
+                               "- Missing required fields\n"
+                               "- Incorrect data types (e.g., string instead of number)\n"
+                               "- Invalid formats for dates, emails, etc.\n",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -150,7 +145,10 @@ Common validation issues include:
 
 if __name__ == '__main__':
     print("Test: schema is nutrition")
-    schema_test = json.loads('{"title": "Food Nutrition", "type": "object", "properties": {"net_weight": {"type": "string", "description": "The net weight of the entire package as labeled"}, "nutrition_on_label": {"type": "object", "description": "Nutrition table on the product", "properties": {"energy": {"type": "number", "description": "Energy content in kilocalories (kcal)."}, "protein": {"type": "number", "description": "Protein content in grams (g)."}, "unit": {"type": "string", "description": "The unit in table (e.g. 100g)"}}, "required": ["energy", "unit"]}, "nutrition_per_package": {"type": "object", "description": "Total nutrient content for the entire package, based on net weight.", "properties": {"energy": {"type": "number", "description": "Total energy in the package in kilocalories (kcal)."}, "protein": {"type": "number", "description": "Total protein in the package in grams (g)."}}, "required": ["energy"]}, "barcode": {"type": "number", "description": "The barcode of the food"}}, "required": ["net_weight", "nutrition_on_label", "nutrition_per_package", "barcode"]}')
+    schema_test = json.loads(
+        '{"title": "Food Nutrition", "type": "object", "properties": {"net_weight": {"type": "string", "description": "The net weight of the entire package as labeled"}, "nutrition_on_label": {"type": "object", "description": "Nutrition table on the product", "properties": {"energy": {"type": "number", "description": "Energy content in kilocalories (kcal)."}, "protein": {"type": "number", "description": "Protein content in grams (g)."}, "unit": {"type": "string", "description": "The unit in table (e.g. 100g)"}}, "required": ["energy", "unit"]}, "nutrition_per_package": {"type": "object", "description": "Total nutrient content for the entire package, based on net weight.", "properties": {"energy": {"type": "number", "description": "Total energy in the package in kilocalories (kcal)."}, "protein": {"type": "number", "description": "Total protein in the package in grams (g)."}}, "required": ["energy"]}, "barcode": {"type": "number", "description": "The barcode of the food"}}, "required": ["net_weight", "nutrition_on_label", "nutrition_per_package", "barcode"]}')
     _, tool = SchemaValidationToolFactory.create_tool(schema=schema_test)
-    print(tool('{"net_weight": "350 mL", "nutrition_on_label": {"energy": 21, "unit": "100 mL"}, "nutrition_per_package": {"energy": 73.5}, "barcode": 8859015700168}'))
-    print(tool('{"net_weight": "350 mL", "nutrition_on_label": {"energy": "cat", "unit": "100 mL"}, "nutrition_per_package": {"energy": 73.5}, "barcode": 8859015700168}'))
+    print(tool(
+        '{"net_weight": "350 mL", "nutrition_on_label": {"energy": 21, "unit": "100 mL"}, "nutrition_per_package": {"energy": 73.5}, "barcode": 8859015700168}'))
+    print(tool(
+        '{"net_weight": "350 mL", "nutrition_on_label": {"energy": "cat", "unit": "100 mL"}, "nutrition_per_package": {"energy": 73.5}, "barcode": 8859015700168}'))
