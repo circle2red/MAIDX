@@ -36,11 +36,10 @@ class SchemaSetupTab(QWidget):
         # Schema validation options
         validation_group = QGroupBox("Schema Validation Options")
         validation_layout = QVBoxLayout()
-
         self.force_retry_on_validation_failure = QCheckBox("Force retry on validation failure")
         self.force_retry_on_validation_failure.setChecked(False)
         validation_layout.addWidget(self.force_retry_on_validation_failure)
-
+        validation_layout.addWidget(QLabel("Alternatively, you can also allow the LLM to use schema verification tool."))
         validation_group.setLayout(validation_layout)
         auto_schema_layout.addWidget(validation_group)
 

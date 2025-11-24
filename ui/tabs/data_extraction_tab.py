@@ -198,7 +198,9 @@ class DataExtractionTab(QWidget):
 
         # Validate schema config
         if not schema_config['raw_schema']:
-            QMessageBox.warning(self, "Invalid Schema", "Please define a schema in the Schema Setup tab.")
+            QMessageBox.warning(self, "Invalid Schema", "Please define a JSON schema in the Schema Setup tab.\n"
+                                                        "Hint: If you are using the tree editor, please click "
+                                                        "convert to JSON.")
             return
 
         # Start extraction thread

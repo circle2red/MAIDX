@@ -140,7 +140,7 @@ class MethodSetupTab(QWidget):
         # Schema tool
         row = QHBoxLayout()
         self.enable_schema_validation = QCheckBox("Schema validation Tool")
-        self.enable_schema_validation.setChecked(False)
+        self.enable_schema_validation.setChecked(True)
         row.addWidget(self.enable_schema_validation)
         row.addWidget(QLabel("Max validations per file (does not share with fail-retry):"))
         self.max_validation_retries = QLineEdit()
@@ -162,7 +162,8 @@ class MethodSetupTab(QWidget):
                                         "If you want to query the latest news, "
                                         "query https://feeds.bbci.co.uk/news/world/rss.xml using "
                                         "the web_fetch tool.\n"
-                                        "Think before you answer.\n")
+                                        "Use the schema verification tool if you are unsure, "
+                                        "and think before you answer.\n")
         col.addWidget(QLabel("Tools prompt:"))
         col.addWidget(self.tools_prompt_input)
         tool_layout.addLayout(col)
