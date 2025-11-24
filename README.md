@@ -18,7 +18,9 @@ MAIDX is a powerful desktop application for extracting structured data from docu
       - Pending: Safer options
   - Web fetch tool to allow LLM search the web
       - Pending: Load some APIs
-  - Pending: DB related tools (RAG), to-do tool, self-reflection tool
+  - Self reflection (internal thinking) Tool
+  - Schema Verification Tool
+  - Pending: DB related tools (RAG), to-do tool
 - **Batch Processing**: Process entire folders of documents automatically
 - **Progress Tracking**: Progress bar and detailed logging
     - Pending: Pause & Resume; DB Cache of LLM streams
@@ -97,24 +99,20 @@ The LLM will:
 
 ```
 maidx/
-├── main.py                 # Application entry point
-├── test.py                 # Test utilities for image processing
-├── sample_call.json        # Sample API call data
-├── sample/                 # Sample datasets
-│   ├── txt-news-structured/       # Structured news text samples
-│   ├── txt-news-unstructured/     # Unstructured news text samples
-│   └── txt-news-task.txt          # Task definition for news samples
+├── main.py                  # Application entry point
+├── sample/                  # Sample datasets
 ├── ui/
-│   ├── main_window.py      # Main window with tabs
-│   └── tabs/
-│       ├── model_setup_tab.py      # Model configuration UI
-│       ├── schema_setup_tab.py     # Schema definition UI
-│       └── data_extraction_tab.py  # Extraction control UI
+│   ├── main_window.py       # Main window with tabs
+│   └── tabs/*.py            # Configuration Tabs UI
 ├── core/
-│   ├── llm_client.py       # LLM API client (httpx-based)
-│   ├── tools.py            # Safe Python execution tool
-│   ├── file_parsers.py     # Document parsers
-│   └── extraction_worker.py # Background extraction worker
+|   ├── llm_tools/
+|   |   ├── tools_manager.py # Manage all LLM tools
+|   |   └── *.py             # LLM Tools
+│   ├── llm_client.py        # LLM API client (httpx-based)
+|   ├── llm_prompt.py       
+|   ├── img_uri.py           # Stores image MIMEs
+│   ├── file_manager.py      # Document parsers and controller
+│   └── extraction_thread.py # Background extraction worker
 └── requirements.txt
 ```
 
@@ -154,7 +152,6 @@ Environment variables can be used to auto-load model settings and API keys for q
 - Windows 10 (Other OSes supporting pyqt may run, but untested)
 - Python 3.11 (Other version may be possible, but untested)
 - Packages in `requirements.txt`
-- (pending) python-docx (DOCX parsing)
 
 
 
