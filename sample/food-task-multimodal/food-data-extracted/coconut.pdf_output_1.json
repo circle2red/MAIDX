@@ -1,0 +1,26 @@
+{
+  "net_weight": "350mL",
+  "nutrition_on_label": {
+    "energy": 21,
+    "protein": 0,
+    "total_fat": 0,
+    "saturated_fat": 0,
+    "trans_fat": 0,
+    "carbohydrates": 5.3,
+    "sugars": 4.4,
+    "sodium": 24,
+    "unit": "100mL"
+  },
+  "nutrition_per_package": {
+    "energy": 73.5,
+    "protein": 0,
+    "total_fat": 0,
+    "saturated_fat": 0,
+    "trans_fat": 0,
+    "carbohydrates": 18.55,
+    "sugars": 15.4,
+    "sodium": 84
+  },
+  "barcode": 885015700168,
+  "name": "COCONUT WATER"
+}

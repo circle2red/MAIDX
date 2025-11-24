@@ -1,0 +1,124 @@
+{
+  "title": "Food Nutrition",
+  "type": "object",
+  "properties": {
+    "net_weight": {
+      "type": "string",
+      "description": "The net weight of the entire package as labeled"
+    },
+    "nutrition_on_label": {
+      "type": "object",
+      "description": "Nutrition table on the product",
+      "properties": {
+        "energy": {
+          "type": "number",
+          "description": "Energy content in kilocalories (kcal)."
+        },
+        "protein": {
+          "type": "number",
+          "description": "Protein content in grams (g)."
+        },
+        "total_fat": {
+          "type": "number",
+          "description": "Total fat content in grams (g)."
+        },
+        "saturated_fat": {
+          "type": "number",
+          "description": "Saturated fat content in grams (g)."
+        },
+        "trans_fat": {
+          "type": "number",
+          "description": "Trans fat content in grams (g)."
+        },
+        "carbohydrates": {
+          "type": "number",
+          "description": "Total carbohydrates content in grams (g)."
+        },
+        "sugars": {
+          "type": "number",
+          "description": "Sugars content in grams (g)."
+        },
+        "sodium": {
+          "type": "number",
+          "description": "Sodium content in milligrams (mg)."
+        },
+        "unit": {
+          "type": "string",
+          "description": "The unit in table (e.g. 100g)"
+        }
+      },
+      "required": [
+        "energy",
+        "protein",
+        "total_fat",
+        "saturated_fat",
+        "trans_fat",
+        "carbohydrates",
+        "sugars",
+        "sodium",
+        "unit"
+      ]
+    },
+    "nutrition_per_package": {
+      "type": "object",
+      "description": "Total nutrient content for the entire package, based on net weight.",
+      "properties": {
+        "energy": {
+          "type": "number",
+          "description": "Total energy in the package in kilocalories (kcal)."
+        },
+        "protein": {
+          "type": "number",
+          "description": "Total protein in the package in grams (g)."
+        },
+        "total_fat": {
+          "type": "number",
+          "description": "Total fat in the package in grams (g)."
+        },
+        "saturated_fat": {
+          "type": "number",
+          "description": "Total saturated fat in the package in grams (g)."
+        },
+        "trans_fat": {
+          "type": "number",
+          "description": "Total trans fat in the package in grams (g)."
+        },
+        "carbohydrates": {
+          "type": "number",
+          "description": "Total carbohydrates in the package in grams (g)."
+        },
+        "sugars": {
+          "type": "number",
+          "description": "Total sugars in the package in grams (g)."
+        },
+        "sodium": {
+          "type": "number",
+          "description": "Total sodium in the package in milligrams (mg)."
+        }
+      },
+      "required": [
+        "energy",
+        "protein",
+        "total_fat",
+        "saturated_fat",
+        "trans_fat",
+        "carbohydrates",
+        "sugars",
+        "sodium"
+      ]
+    },
+    "barcode": {
+      "type": "number",
+      "description": "The barcode of the food"
+    },
+    "name": {
+      "type": "string",
+      "description": "The name of the food in its original form"
+    }
+  },
+  "required": [
+    "net_weight",
+    "nutrition_on_label",
+    "nutrition_per_package",
+  ]
+}
