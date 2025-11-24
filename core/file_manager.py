@@ -193,8 +193,11 @@ class FileManager:
             raise ValueError("Segment max_len <= overlap")
         result = []
         cur_pos = 0
-        while cur_pos + overlap < len(s):
-            result.append(s[cur_pos: cur_pos+max_len])
+        while cur_pos < len(s):
+            seg_end = min(cur_pos + max_len, len(s))
+            result.append(s[cur_pos: seg_end])
+            if seg_end == len(s):
+                break
             cur_pos += max_len - overlap
         return result
 
@@ -220,8 +223,12 @@ class FileManager:
             raise ValueError("Segment max_len <= overlap")
         segments = []
         cur_pos = 0
-        while cur_pos + overlap < len(page_list):
-            segments.append(page_list[cur_pos: cur_pos+max_len])
+        n_pages = len(page_list)
+        while cur_pos < n_pages:
+            segment_end = min(cur_pos + max_len, n_pages)
+            segments.append(page_list[cur_pos: segment_end])
+            if segment_end == n_pages:
+                break
             cur_pos += max_len - overlap
         result = []
         for cid, pages in enumerate(segments):
