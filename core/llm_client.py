@@ -156,7 +156,6 @@ class LLMClient:
             json=payload,
             timeout=self.timeout,
         )
-
         resp = request.json()
         if 'error' in resp:
             raise ValueError(f"Error in LLM response: {resp}")

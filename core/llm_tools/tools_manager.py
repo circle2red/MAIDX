@@ -1,16 +1,23 @@
 import copy
 import json
-from typing import List
+from typing import List, Optional
 
-from core.llm_tools import python_tool, web_fetch_tool, think_tool
+from core.llm_tools import python_tool, web_fetch_tool, think_tool, schema_validation_tool
 
 
 class ToolsManager:
     """Manager for LLM tools"""
 
-    def __init__(self, python_limit=5, web_fetch_limit=5, think_limit=5):
+    def __init__(self, python_limit=5, web_fetch_limit=5, think_limit=5, schema=None, schema_validation_limit=5):
         """
         Set up a ToolsManager. Set both limits to 0 to disallow any tools.
+
+        Args:
+            python_limit (int): Maximum number of Python tool calls
+            web_fetch_limit (int): Maximum number of web fetch tool calls
+            think_limit (int): Maximum number of think tool calls
+            schema (dict or str, optional): JSON schema for validation
+            schema_validation_limit (int): Maximum number of validation retry attempts
         """
         self.tools = {}
         self.tools[python_tool.tool_desc['function']['name']] = {
@@ -31,6 +38,21 @@ class ToolsManager:
             'func': think_tool.think,
             'init_limit': think_limit,
         }
+
+        # Add schema validation tool if schema is provided
+        if schema:
+            # Create a schema validation tool
+            tool_desc, validation_func = schema_validation_tool.SchemaValidationToolFactory.create_tool(schema)
+            tool_name = tool_desc['function']['name']
+
+            # Add to tools with unlimited usage (validation is critical)
+            self.tools[tool_name] = {
+                'desc': tool_desc,
+                'usage_limit': schema_validation_limit,
+                'func': validation_func,
+                'init_limit': schema_validation_limit,
+            }
+
         """
             format: {
                 "tool_name": {

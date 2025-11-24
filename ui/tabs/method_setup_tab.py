@@ -40,7 +40,6 @@ class MethodSetupTab(QWidget):
         self.pdf_mode_group = QButtonGroup(self)
 
         self.pdf_pure_text_extraction = QRadioButton("Pure Text Extraction")
-        self.pdf_pure_text_extraction.setChecked(True)
         self.pdf_pure_text_extraction.toggled.connect(
             lambda checked: self.set_default_segment_value(mode='txt') if checked else None
         )
@@ -48,6 +47,7 @@ class MethodSetupTab(QWidget):
         pdf_layout.addWidget(self.pdf_pure_text_extraction)
 
         self.pdf_text_with_img = QRadioButton("Text Extraction + Image (Forced Segmentation by Page, *)")
+        self.pdf_text_with_img.setChecked(True)
         self.pdf_text_with_img.toggled.connect(
             lambda checked: self.set_default_segment_value(mode='img') if checked else None
         )
@@ -74,17 +74,17 @@ class MethodSetupTab(QWidget):
 
         row = QHBoxLayout()
         self.seg_max_text_len = QLineEdit()
-        self.seg_max_text_len.setText("30000")
+        # self.seg_max_text_len.setText("30000")
         row.addWidget(QLabel("Max text length per segment: "))
         row.addWidget(self.seg_max_text_len)
 
         self.seg_max_pages = QLineEdit()
-        self.seg_max_pages.setText("1")
+        self.seg_max_pages.setText("5")
         row.addWidget(QLabel("Max pages count (*): "))
         row.addWidget(self.seg_max_pages)
 
         self.seg_overlap = QLineEdit()
-        self.seg_overlap.setText("1000")
+        self.seg_overlap.setText("1")
         row.addWidget(QLabel("Text / Page(*) overlapping length: "))
         row.addWidget(self.seg_overlap)
 
@@ -106,12 +106,11 @@ class MethodSetupTab(QWidget):
         self.tool_python = QCheckBox("Restricted Python Tool")
         self.tool_python.setChecked(True)
         row.addWidget(self.tool_python)
-
         self.tool_python_max_call = QLineEdit()
         self.tool_python_max_call.setText("10")
         row.addWidget(QLabel("Max Python calls per file: "))
         row.addWidget(self.tool_python_max_call)
-
+        row.addStretch()
         tool_layout.addLayout(row)
 
         # Web fetch tool
@@ -119,12 +118,11 @@ class MethodSetupTab(QWidget):
         self.tool_web_fetch = QCheckBox("Web Fetch Tool")
         self.tool_web_fetch.setChecked(True)
         row.addWidget(self.tool_web_fetch)
-
         self.tool_web_fetch_max_call = QLineEdit()
         self.tool_web_fetch_max_call.setText("10")
         row.addWidget(QLabel("Max web fetch calls per file: "))
         row.addWidget(self.tool_web_fetch_max_call)
-
+        row.addStretch()
         tool_layout.addLayout(row)
 
         # Think tool
@@ -132,13 +130,26 @@ class MethodSetupTab(QWidget):
         self.tool_think = QCheckBox("Internal Think Tool")
         self.tool_think.setChecked(True)
         row.addWidget(self.tool_think)
-
         self.tool_think_max_call = QLineEdit()
         self.tool_think_max_call.setText("10")
         row.addWidget(QLabel("Max internal thoughts per file: "))
         row.addWidget(self.tool_think_max_call)
+        row.addStretch()
+        tool_layout.addLayout(row)
+
+        # Schema tool
+        row = QHBoxLayout()
+        self.enable_schema_validation = QCheckBox("Schema validation Tool")
+        self.enable_schema_validation.setChecked(False)
+        row.addWidget(self.enable_schema_validation)
+        row.addWidget(QLabel("Max validations per file (does not share with fail-retry):"))
+        self.max_validation_retries = QLineEdit()
+        self.max_validation_retries.setText("10")
+        row.addWidget(self.max_validation_retries)
+        row.addStretch()
 
         tool_layout.addLayout(row)
+
 
         # self.tool_web_search = QCheckBox("Web Search Tool")
         # self.tool_web_search.setChecked(True)
@@ -193,6 +204,11 @@ class MethodSetupTab(QWidget):
         else:
             max_web_fetch_call = 0
 
+        if self.enable_schema_validation.isChecked():
+            max_validation_retries = as_int(self.max_validation_retries.text(), 10)
+        else:
+            max_validation_retries = 0
+
         tool_prompt = self.tools_prompt_input.toPlainText()
 
         config = {
@@ -204,6 +220,7 @@ class MethodSetupTab(QWidget):
             "multi_obj": multi_obj,
             "max_python_call": max_python_call,
             "max_web_fetch_call": max_web_fetch_call,
+            "max_validation_retries": max_validation_retries,
             "tool_prompt": tool_prompt,
         }
 

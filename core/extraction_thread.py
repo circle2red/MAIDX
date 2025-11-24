@@ -2,22 +2,26 @@
 Extraction Worker - Background thread for processing files
 """
 from PySide6.QtCore import QThread, Signal
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import json
 import os
 import re
+
+import core.llm_tools.schema_validation_tool
 from core.llm_tools.tools_manager import ToolsManager
 from core.llm_client import LLMClient, parse_code_fences
 from core.file_manager import FileManager
 from core.llm_prompt import system_prompt, user_prompt
+from core.llm_tools.schema_validation_tool import validate_against_schema
 
+SCHEMA_TOOL_NAME = core.llm_tools.schema_validation_tool.TOOL_NAME
 
 class ExtractionThread(QThread):
     """Worker thread for extracting data from files"""
 
     progress = Signal(int, int)  # current, total
     log = Signal(str)
-    finished = Signal()
+    ext_finished = Signal()  # Extraction finished signal, must not be named "finished" (conflict with QThread builtin finished signal)
     error = Signal(str)
 
     def __init__(self, model_config: Dict[str, Any],
@@ -52,9 +56,15 @@ class ExtractionThread(QThread):
             )
 
             self.log.emit("Setting up LLM tools...")
+            # Pass schema for validation if enabled
+
+            schema_dict = self.schema_config['json_schema']
+
             self.tools_manager = ToolsManager(
                 python_limit=self.method_config['max_python_call'],
-                web_fetch_limit=self.method_config['max_web_fetch_call']
+                web_fetch_limit=self.method_config['max_web_fetch_call'],
+                schema=schema_dict,
+                schema_validation_limit=self.method_config['max_validation_retries'],
             )
 
             self.log.emit("Initializing LLM client...")
@@ -70,7 +80,7 @@ class ExtractionThread(QThread):
             )
 
             # Prepare schema information
-            schema_info = self.prepare_schema_info()
+            schema_desc = self.prepare_schema_info()
 
             # Initialize output directory for JSON files
             self.log.emit(f"JSON output directory: {self.file_manager.output_path}")
@@ -97,7 +107,7 @@ class ExtractionThread(QThread):
                             segment_status = None
                         self.llm_client.add_text_message(
                             "system",
-                            system_prompt(json_schema=schema_info,
+                            system_prompt(json_schema_description=schema_desc,
                                           tools_desc=self.method_config['tool_prompt'],
                                           multiple_per_file=self.method_config['multi_obj'],
                                           segment_status=segment_status)
@@ -112,15 +122,34 @@ class ExtractionThread(QThread):
                         for img in segment_content['img']:
                             self.llm_client.add_image_message("user",
                                                               img_b64=img)
-                        resp = self.llm_client.send_llm_request()
-                        last_resp = ""
-                        result = []
-                        objs = parse_code_fences(resp)
-                        for obj in objs:
-                            if '%missing%' in obj:
-                                last_resp += f"```\n{obj}\n```\n"
-                            else:
-                                result.append(obj)
+
+                        pass_schema_check = False
+
+                        while not pass_schema_check:
+                            pass_schema_check = True
+                            resp = self.llm_client.send_llm_request()
+                            last_resp = ""
+                            result = []
+                            objs = parse_code_fences(resp)
+                            for obj in objs:
+                                if '%missing%' in obj:
+                                    last_resp += f"```\n{obj}\n```\n"
+                                else:
+                                    if self.schema_config['force_retry_on_validation_failure']:
+                                        validation_result = validate_against_schema(schema=schema_dict, data_str=obj)
+                                        if validation_result['valid']:
+                                            result.append(obj)
+                                        else:
+                                            errors = '\n'.join(i['message'] for i in validation_result['errors'])
+                                            self.llm_client.add_text_message("user", f"Schema check failed for obj: \n```\n{obj}\n```\n, "
+                                                                                     f"Please fix the following errors: {errors}")
+                                            pass_schema_check = False
+                                    else:
+                                        result.append(obj)
+
+                            if self.schema_config['force_retry_on_validation_failure'] and self.tools_manager.tools[SCHEMA_TOOL_NAME]['usage_limit'] <= 0:
+                                break
+
                         if self.extraction_config['log_raw']:
                             self.file_manager.append_log_for_file(
                                 filename=file_path,
@@ -138,28 +167,14 @@ class ExtractionThread(QThread):
                     continue
                 self.progress.emit(i + 1, total)
 
-            self.finished.emit()
-
+            self.ext_finished.emit()
         except Exception as e:
             self.error.emit(str(e))
 
     def prepare_schema_info(self) -> str:
         """Prepare schema information for the LLM prompt"""
         # Use the full JSON schema if available
-        raw_schema = self.schema_config.get('raw_schema', '')
-        if raw_schema:
-            schema_info = f"Extract data according to the following JSON Schema:\n\n{raw_schema}"
-        else:
-            fields = self.schema_config['fields']
-            field_descriptions = []
-            for field in fields:
-                desc = f"- {field['name']} ({field['type']})"
-                if field['description']:
-                    desc += f": {field['description']}"
-                field_descriptions.append(desc)
-
-            schema_info = "Extract data as JSON with fields:\n"
-            schema_info += "\n".join(field_descriptions)
-
+        raw_schema = self.schema_config.get('raw_schema', '{}')
+        schema_info = f"Extract data according to the following JSON Schema:\n\n{raw_schema}"
         return schema_info
 

@@ -5,7 +5,8 @@ from PySide6.QtGui import QTextOption
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QGroupBox,
                                QLabel, QComboBox, QLineEdit, QPushButton,
                                QTextEdit, QTreeWidget, QTreeWidgetItem,
-                               QFormLayout, QMessageBox, QHeaderView, QFileDialog)
+                               QFormLayout, QMessageBox, QHeaderView, QFileDialog,
+                               QCheckBox, QSpinBox)
 from PySide6.QtCore import Signal, Qt
 import json
 
@@ -31,6 +32,17 @@ class SchemaSetupTab(QWidget):
     def init_ui(self):
         layout = QHBoxLayout(self)
         auto_schema_layout = QVBoxLayout()
+
+        # Schema validation options
+        validation_group = QGroupBox("Schema Validation Options")
+        validation_layout = QVBoxLayout()
+
+        self.force_retry_on_validation_failure = QCheckBox("Force retry on validation failure")
+        self.force_retry_on_validation_failure.setChecked(False)
+        validation_layout.addWidget(self.force_retry_on_validation_failure)
+
+        validation_group.setLayout(validation_layout)
+        auto_schema_layout.addWidget(validation_group)
 
         # LLM auto generate schema
         auto_group = QGroupBox("Automatic Schema Generation")
@@ -522,22 +534,22 @@ class SchemaSetupTab(QWidget):
 
         self.schema_changed.emit()
 
-    def tree_to_fields_list(self):
-        """Convert tree structure to flat fields list (for backward compatibility)"""
-        fields = []
-
-        def traverse(item, depth=0):
-            data = item.data(0, Qt.UserRole)
-            if data:
-                fields.append(data)
-
-            for i in range(item.childCount()):
-                traverse(item.child(i), depth + 1)
-
-        for i in range(self.fields_tree.topLevelItemCount()):
-            traverse(self.fields_tree.topLevelItem(i))
-
-        return fields
+    # def tree_to_fields_list(self):
+    #     """Convert tree structure to flat fields list (for backward compatibility)"""
+    #     fields = []
+    #
+    #     def traverse(item, depth=0):
+    #         data = item.data(0, Qt.UserRole)
+    #         if data:
+    #             fields.append(data)
+    #
+    #         for i in range(item.childCount()):
+    #             traverse(item.child(i), depth + 1)
+    #
+    #     for i in range(self.fields_tree.topLevelItemCount()):
+    #         traverse(self.fields_tree.topLevelItem(i))
+    #
+    #     return fields
 
     def tree_item_to_schema(self, item):
         """Convert a tree item to JSON Schema property definition"""
@@ -625,21 +637,26 @@ class SchemaSetupTab(QWidget):
         raw_schema = self.schema_text.toPlainText().strip()
 
         # Get fields from tree structure
-        fields = self.tree_to_fields_list()
-
-        config = {
-            "type": "JSON Schema",
-            "json_title": self.json_title_input.text().strip() or "Data Schema",
-            "fields": fields,
-            "raw_schema": raw_schema
-        }
+        # fields = self.tree_to_fields_list()
 
         # Parse and include the actual JSON schema object
         if raw_schema:
             try:
-                config["json_schema"] = json.loads(raw_schema)
+                json_schema = json.loads(raw_schema)
             except:
-                config["json_schema"] = None
+                json_schema = None
+        else:
+            json_schema = None
+
+        config = {
+            # "type": "JSON Schema",
+            # "json_title": self.json_title_input.text().strip() or "Data Schema",
+            # "fields": fields,
+            "raw_schema": raw_schema,
+            # Schema validation options
+            "force_retry_on_validation_failure": self.force_retry_on_validation_failure.isChecked(),
+            "json_schema": json_schema,
+        }
 
         return config
 

@@ -197,7 +197,7 @@ class DataExtractionTab(QWidget):
             return
 
         # Validate schema config
-        if not schema_config['fields'] and not schema_config['raw_schema']:
+        if not schema_config['raw_schema']:
             QMessageBox.warning(self, "Invalid Schema", "Please define a schema in the Schema Setup tab.")
             return
 
@@ -217,7 +217,7 @@ class DataExtractionTab(QWidget):
 
         self.extraction_thread.progress.connect(self.update_progress)
         self.extraction_thread.log.connect(self.add_log)
-        self.extraction_thread.finished.connect(self.extraction_finished)
+        self.extraction_thread.ext_finished.connect(self.extraction_finished)
         self.extraction_thread.error.connect(self.extraction_error)
 
         self.extraction_thread.start()

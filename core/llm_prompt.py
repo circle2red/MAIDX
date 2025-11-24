@@ -1,7 +1,7 @@
 from typing import List
 
 
-def system_prompt(json_schema: str, tools_desc: str,
+def system_prompt(json_schema_description: str, tools_desc: str,
                   multiple_per_file=False, segment_status=None):
     """
     Format a system prompt for LLM.
@@ -41,7 +41,7 @@ def system_prompt(json_schema: str, tools_desc: str,
 
     return f"You are a data extraction assistant. " \
            f"Your task is to extract structured data from documents according to a given schema.\n\n" \
-           f"Schema: Extract data according to the following JSON Schema: {json_schema}\n\n" \
+           f"Schema: Extract data according to the following JSON Schema: {json_schema_description}\n\n" \
            f"Instructions: {quantity_instruction}\n " \
            f"Return the result as valid JSON that conforms to the provided JSON Schema.\n" \
            f" - For nested objects, include all required nested fields\n" \
