@@ -147,9 +147,6 @@ class ExtractionThread(QThread):
                                     else:
                                         result.append(obj)
 
-                            if self.schema_config['force_retry_on_validation_failure'] and self.tools_manager.tools[SCHEMA_TOOL_NAME]['usage_limit'] <= 0:
-                                break
-
                         if self.extraction_config['log_raw']:
                             self.file_manager.append_log_for_file(
                                 filename=file_path,
