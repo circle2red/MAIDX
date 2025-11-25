@@ -1,8 +1,0 @@
-{
-  "title": "Act Now — Microsoft Issues Emergency Windows Update As Attacks Begin",
-  "category": "Technology",
-  "reporter": ["Davey Winder"],
-  "time": 1761441840,
-  "summary": "Microsoft released an emergency update for CVE-2025-59287 in Windows Server, exploited for remote code execution. CISA warns of ongoing attacks and mandates updates for federal agencies. Thousands of servers are at risk; apply patch immediately.",
-  "emotion": -1
-}

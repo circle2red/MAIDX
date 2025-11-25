@@ -76,22 +76,27 @@ pip install -r requirements.txt
 
 ### Example 1 (Enclosed): Extract information from news articles (text)
 
-1. **Model Setup**: Choose DeepSeek and enter your API key, or set environment variables or `.env` file for auto-loading.
-2. **Schema Setup**: Define a news schema with fields like title, person, timestamp, emotion.
-3. **Method Setup**: Configure extraction mode based on document structure.
-4. **Data Extraction**: Select the `sample/txt-news-unstructured` folder, choose output file, and start.
+1. **Model Setup**: Choose a LLM and enter your API key, or set environment variables or `.env` file for auto-loading.
+2. **Schema Setup**: Define a news schema with fields like title, person, timestamp, emotion. You can also auto-generate or use the preset in `sample/news-task-txt/txt-news-schema.txt`
+3. **Method Setup**: Configure extraction mode based on document structure  (suggestion: disable segmentation).
+4. **Data Extraction**: Select the `sample/news-task-txt/txt-news-raw` folder, choose an output folder, and start.
 
 The LLM will:
 - Read each news article
 - Extract structured data according to your schema
 - Use the Python tool for timestamp conversions
-- Save results to SQLite database or JSON file
+- Save results to JSON file
 
 
 
-### Example 2: Process Images, or mixed documents (PDF, JPGs)
+### Example 2 (Enclosed): Extract Nutrition Information: (Process Images, and mixed documents)
 
-- The functions are finished but currently pending an example.
+1. **Model Setup**: Choose a Vision Capable Model and enter your API key, or set environment variables or `.env` file for auto-loading.
+2. **Schema Setup**: Define a news schema with fields like calories, sugar, etc. You can also auto-generate or use the preset.
+3. **Method Setup**: Configure extraction mode (suggestion: disable segmentation).
+4. **Data Extraction**: Select the `sample/food-task-multimodal` folder, choose output file, and start.
+
+
 
 
 
@@ -149,7 +154,7 @@ Environment variables can be used to auto-load model settings and API keys for q
 
 ## Requirements
 
-- Windows 10 (Other OSes supporting pyqt may run, but untested)
+- Windows 10, MacOS 15 (Other OSes supporting PyQT6 may run, but untested)
 - Python 3.11 (Other version may be possible, but untested)
 - Packages in `requirements.txt`
 

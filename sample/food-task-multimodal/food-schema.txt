@@ -119,6 +119,6 @@
   "required": [
     "net_weight",
     "nutrition_on_label",
-    "nutrition_per_package",
+    "nutrition_per_package"
   ]
 }
